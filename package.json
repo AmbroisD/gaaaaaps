@@ -1,0 +1,31 @@
+{
+  "name": "gaaaaaps",
+  "version": "1.0.0",
+  "description": "gaps",
+  "main": "dist/gaps.js",
+  "scripts": {
+    "dev": "webpack --mode development",
+    "prod": "webpack --mode production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://kleos.unice.fr/ambrois/check-sds.git"
+  },
+  "author": "ambrois",
+  "license": "ISC",
+  "devDependencies": {
+    "coffee-loader": "^0.9.0",
+    "css-loader": "^0.28.11",
+    "element-ui": "^2.2.2",
+    "file-loader": "^1.1.11",
+    "style-loader": "^0.20.3",
+    "uglifyjs-webpack-plugin": "^1.2.4",
+    "url-loader": "^1.0.1",
+    "vue": "^2.5.16",
+    "vue-loader": "^14.2.1",
+    "vue-template-compiler": "^2.5.16",
+    "webpack": "^4.1.1",
+    "webpack-cli": "^2.0.12"
+  },
+  "dependencies": {}
+}
