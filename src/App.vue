@@ -1,6 +1,6 @@
 <template>
-  <div id="myApplication">
-    <h1>Hello World</h1>
+  <div id="app">
+    <h1>Hello World David</h1>
     <p>little text behind the title</p>
   </div>
 </template>
