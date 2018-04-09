@@ -1,11 +1,30 @@
-intaller la derniere version de nodejs sur ubuntu
+# Gaaaaaps
 
-curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash -
-sudo apt-get install -y nodejs
+> #### Get dAtA AvAilAbility for ProjectS 
 
-npm install     #install dependance
-npm run dev     #pour compiler le .js
+#### Install
 
-puis lancer site_routage
+```bash
+npm install #install dependance 
+npm run dev # to create .js
+
+# then  
+python ./site_routage.py
+```
 
 
+
+### Annexe
+
+#### How to install the latest nodejs version in ubuntu
+
+You can install the last using the distribution from NodeSource repository:
+
+```bash
+curl --silent --location https://deb.nodesource.com/setup_9.x | sudo bash -
+sudo apt-get install nodejs
+```
+
+You can find all the sources here, https://github.com/nodesource/distributions/tree/master/deb
+
+Then, you have the latest version of node.js installed.
