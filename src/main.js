@@ -11,14 +11,18 @@ Vue.use(ElementUI, { size: 'small', locale })
 
 // load custom components
 //import DisplayTable from './components/DisplayTable.vue'
-//import DeviceForm from './components/DeviceForm.vue'
+import DeviceForm from './components/DeviceForm.vue'
+import DeviceHeader from './components/DeviceHeader.vue'
+import DeviceAside from './components/DeviceAside.vue'
 //import DeviceTools from './components/DeviceTools.vue'
 import DisplayLegend from './components/DisplayLegend.vue'
 
 // install globally cutom components
 //Vue.component('display-table', DisplayTable)
+Vue.component('device-aside', DeviceAside)
+Vue.component('device-header', DeviceHeader)
 Vue.component('display-legend', DisplayLegend)
-//Vue.component('device-form', DeviceForm)
+Vue.component('device-form', DeviceForm)
 //Vue.component('device-tools', DeviceTools)
 /*Vue.use(Element)*/   /* to do importer un par un */
 /* eslint-disable no-new */
@@ -28,8 +32,5 @@ import App from './App.vue'
 new Vue({
   el: '#app',
   template: '<App/>',
-  components: { App },
-  data :{
-    visible : false
-  }
+  components: { App }
 })

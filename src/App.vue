@@ -1,13 +1,15 @@
 <template>
   <el-container>
-    <el-header>Gaaaaaps</el-header>
+    <el-header>
+      <device-header></device-header>
+    </el-header>
     <el-container>
-        <el-aside width="200px">Menu</el-aside>
-        <el-main id="app">
-          <el-button @click="visible = false">Legend</el-button>
-          <display-legend :visible.sync="visible" ></display-legend>
-          <h1>Data avaibility</h1>
-          <p></p>
+        <el-aside width="200px">
+          <device-aside></device-aside>
+        </el-aside>
+        <el-main>
+          <display-legend></display-legend>
+          <device-form></device-form>
         </el-main>
     </el-container>
   </el-container>
@@ -33,7 +35,7 @@ export default {
   }
 
   .el-header {
-    background-color: #B3C0D1;
+    background-color: #545c64;
     color: #333;
     text-align: left;
     line-height: 60px;
