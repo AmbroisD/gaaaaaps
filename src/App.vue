@@ -1,15 +1,13 @@
 <template>
-  <el-container>
+  <el-container style="height: 100vh;">
     <el-header>
       <device-header></device-header>
     </el-header>
     <el-container>
-        <el-aside width="200px">
-          <device-aside></device-aside>
-        </el-aside>
+        <device-aside v-model="activeIndex"></device-aside>
         <el-main>
-          <display-legend></display-legend>
-          <device-form></device-form>
+          <device-form v-if="activeIndex == '1'"></device-form>
+          <display-legend v-if="activeIndex == '2'"></display-legend>
         </el-main>
     </el-container>
   </el-container>
@@ -17,7 +15,13 @@
 
 <script>
 export default {
-  name: 'app'
+  data() {
+    return {
+      activeIndex: '1'
+    };
+  },
+  methods: {
+  }
 }
 
 </script>
@@ -55,7 +59,7 @@ export default {
   }
 
   body > .el-container {
-    margin-bottom: 40px;
+    /*margin-bottom: 40px;*/
   }
 
   .el-container:nth-child(5) .el-aside,

@@ -39,6 +39,13 @@
         v-model="sdsForm.e_date"></el-date-picker>
     </el-form-item>
     <el-form-item
+      label="More option"
+      prop="more_option">
+      <el-switch v-model="sdsForm.more_option">
+    </el-switch>
+    </el-form-item>
+    <el-form-item
+      v-if="sdsForm.more_option == true"
       label="Component"
       prop="type">
       <el-checkbox-group
@@ -50,11 +57,21 @@
         <el-checkbox label="SH" name="type"></el-checkbox>
       </el-checkbox-group>
     </el-form-item>
+    <el-form-item
+      v-if="sdsForm.more_option == true"
+      label="Network"
+      prop="network">
+      <el-checkbox-group
+        v-model="sdsForm.network">
+        <el-checkbox label="FR" name="network"></el-checkbox>
+        <el-checkbox label="RA" name="network"></el-checkbox>
+      </el-checkbox-group>
+    </el-form-item>
     <el-form-item>
       <el-button
         type="primary"
         @click="submitForm('sdsForm')">
-        Create</el-button>
+        Submit</el-button>
       <el-button
         @click="resetForm('sdsForm')">
         Reset</el-button>
@@ -69,7 +86,9 @@
           project: '',
           s_date: '',
           e_date: '',
-          type: ['HN','HH','DN','EH', 'SH']
+          type: ['HN','HH','DN','EH', 'SH'],
+          more_option: false,
+          network: ['FR','RA']
         },
         rules: {
               project: [

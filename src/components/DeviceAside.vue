@@ -1,6 +1,6 @@
 <template>
   <el-menu
-    :default-active="2"
+    :default-active="value"
     class="el-menu-vertical-demo"
     @select="handleSelect"
     background-color="#D3DCE6"
@@ -16,13 +16,10 @@
 
 <script>
   export default {
-    data() {
-      return {
-        activeIndex: '1'
-      };
-    },
+    props: ['value'],
     methods: {
       handleSelect(key, keyPath) {
+        this.$emit('input', key)
         console.log(key, keyPath);
       }
     }
