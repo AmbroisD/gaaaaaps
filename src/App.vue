@@ -8,6 +8,7 @@
         <el-main>
           <device-form v-if="activeIndex == '1'"></device-form>
           <display-legend v-if="activeIndex == '2'"></display-legend>
+          <display-table v-if="activeIndex == '2'"></display-table>
         </el-main>
     </el-container>
   </el-container>

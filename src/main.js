@@ -6,15 +6,15 @@ import axios from 'axios'
 import VueAxios from 'vue-axios'
 
 //Vue.use(VueAxios, axios)
-Vue.prototype.$http = axios
+//Vue.prototype.$http = axios
 Vue.config.productionTip = false
 
 
 // install Element-UI
-Vue.use(ElementUI, { size: 'small', locale })
+Vue.use(ElementUI, { size: 'small', locale }, axios)
 
 // load custom components
-//import DisplayTable from './components/DisplayTable.vue'
+import DisplayTable from './components/DisplayTable.vue'
 import DeviceForm from './components/DeviceForm.vue'
 import DeviceHeader from './components/DeviceHeader.vue'
 import DeviceAside from './components/DeviceAside.vue'
@@ -22,7 +22,7 @@ import DeviceAside from './components/DeviceAside.vue'
 import DisplayLegend from './components/DisplayLegend.vue'
 
 // install globally cutom components
-//Vue.component('display-table', DisplayTable)
+Vue.component('display-table', DisplayTable)
 Vue.component('device-aside', DeviceAside)
 Vue.component('device-header', DeviceHeader)
 Vue.component('display-legend', DisplayLegend)
