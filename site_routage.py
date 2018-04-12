@@ -3,9 +3,7 @@
 import os
 import traceback
 from flask import Flask, request, render_template, Response, abort
-from scripts.utils import get_data_for_html_page
-from scripts.utils import get_sds_info
-from scripts.utils import sds_filter
+from scripts.utils import get_data
 from scripts.utils import error_response
 from scripts.utils import ok_response
 
@@ -19,28 +17,30 @@ def index():
 
 
 @app.route('/ws/get_data', methods=["GET"])
-def show_table():
+def get_table_data():
     """
     main fonction
     """
-    start = request.args.get('start', default=None, type=int)
-    end = request.args.get('end', default=None, type=int)
+    start = request.args.get('start', default=None)
+    end = request.args.get('end', default=None)
     sds = request.args.get('sds', default=None)
-    year = request.args.get('year', default=None)
-    net = request.args.get('net', default=None)
-    sta = request.args.get('sta', default=None)
-    try:
-        if sds is not None and start is not None and end is not None:
-            sds_info = get_sds_info(sds, year)
-            days_names, days, stations, sds_info_data = get_data_for_html_page(start,
-                                                                               end,
-                                                                               sds_info['dict_info_station'],
-                                                                               year)
-            stations, sds_info_data = sds_filter(stations, sds_info_data, sta, net)
-            ok_response(sds_info_data)
-
-    except Exception as exception:
-        return error_response('%s' % traceback.format_exc())
+    net = request.args.get('net', default='*')
+    sta = request.args.get('sta', default='*')
+    comp = request.args.get('comp', default='*')
+    loc = request.args.get('loc', default='*')
+    if sds is not None and start is not None and end is not None:
+        try:
+            return ok_response(get_data(sds,
+                                        [int(x) for x in start.split(',')],
+                                        [int(x) for x in end.split(',')],
+                                        filter_option={"stations": sta,
+                                                       "networks": net,
+                                                       "components": comp,
+                                                       "locations": loc}))
+        except Exception as exception:
+            return error_response('%s' % traceback.format_exc())
+    else:
+        abort(400)
 
 
 @app.route('/ws/day', methods=['GET'])

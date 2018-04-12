@@ -22,6 +22,23 @@
           value="alparray"></el-option>
       </el-select>
     </el-form-item>
+    <el-form-item>
+      <el-switch
+        prop="julian_day"
+        v-model="sdsForm.julian_day"
+        active-text="julian day"
+        inactive-text="day">
+      </el-switch>
+    </el-form-item>
+    <el-form-item
+      label="Start Date"
+      prop="s_date_j">
+      <el-input-number
+        v-model="sdsForm.s_date_j"
+        :min="1"
+        :max="366">
+      </el-input-number>
+    </el-form-item>
     <el-form-item
       label="Start Date"
       prop="s_date">
@@ -32,11 +49,20 @@
     </el-form-item>
     <el-form-item
       label="End Date"
+      prop="e_date_j">
+      <el-input-number
+        v-model="sdsForm.e_date_j"
+        :min="1"
+        :max="366">
+      </el-input-number>
+    </el-form-item>
+    <el-form-item
+      label="End Date"
       prop="e_date">
-      <el-date-picker
-        type="date"
-        placeholder="Pick a end date"
-        v-model="sdsForm.e_date"></el-date-picker>
+        <el-date-picker
+          type="date"
+          placeholder="Pick a end date"
+          v-model="sdsForm.e_date"></el-date-picker>
     </el-form-item>
     <el-form-item
       label="More option"
@@ -86,24 +112,36 @@
           project: '',
           s_date: '',
           e_date: '',
+          s_date_j: '',
+          e_date_j: '',
           type: ['HN','HH','DN','EH', 'SH'],
           more_option: false,
-          network: ['FR','RA']
+          network: ['FR','RA'],
+          julian_day: true
         },
         rules: {
               project: [
                 { required: true, message: 'Please select Project', trigger: 'change' }
               ],
+              s_date_j: [
+                { required: false, message: 'Please pick a start date', trigger: 'change' }
+              ],
+              e_date_j: [
+                { required: false, message: 'Please pick a end date', trigger: 'change' }
+              ],
               s_date: [
-                { type: 'date', required: true, message: 'Please pick a start date', trigger: 'change' }
+                { required: false, message: 'Please pick a start date', trigger: 'change' }
               ],
               e_date: [
-                { type: 'date', required: true, message: 'Please pick a end date', trigger: 'change' }
+                { required: false, message: 'Please pick a end date', trigger: 'change' }
               ],
               type: [
                 { type: 'array', required: false, message: 'Please select at least one component', trigger: 'change' }
               ],
               network: [
+                { required: false, message: 'Please select network', trigger: 'change' }
+              ],
+              julian_day: [
                 { required: false, message: 'Please select network', trigger: 'change' }
               ]
             }

@@ -56,7 +56,7 @@ def ok_response(result=None):
                     mimetype='application/json')
 
 
-def get_name_date(days, year):
+def get_name_date_list(days, year):
     """
     return the names of the date
     """
@@ -66,35 +66,71 @@ def get_name_date(days, year):
     return name_days
 
 
-def get_data_for_html_page(start, end, sds_info, year):
+def get_name_date(day, year):
     """
-    return info data
+    return the name of the date
     """
-    days = ['%03d' % x for x in range(start, end+1)]
-    days_names = get_name_date(days, year)
+    return datetime.strptime('%s.%s' % (year, day), '%Y.%j').strftime('%d %b %Y')
+
+
+def get_info(channel, day, year):
+    return None
+
+
+def get_data(sds, start, end, filter_option):
+    """
+    sds : name of sds
+    start: list [day, year] exemple : [100, 2016]
+    end: list [day, year] exemple : [130, 2016]
+    filter_option dict for filter result
+
+    return list with this stucture
+    tableData = [{station: 'AJAC', location:'00', comp:'HH' , date1 , date2},
+    ]
+    """
+    days = ['%03d' % x for x in range(start[0], end[0]+1)]
+    year = start[1]
+    sds_info = get_sds_info(sds, year)["dict_info_station"]
     list_cha = sds_info.keys()
-    stations = []
-    html_sds = {}
+
+    data = [] # init result
+
     for current_cha in list_cha:
-        net, sta, loc, cha = current_cha.split('.')
-        stations.append(sta)
-        key = '.'.join([sta, loc, cha])
-        html_sds[key] = {'net': net}
-        avg = 0
-        for day in days:
-            if day in sds_info[current_cha].keys():
-                html_sds[key][day] = {'percent': round((float(sds_info[current_cha][day][0])*100), 2),
+        if get_channel_filtered(current_cha, filter_option):
+            net, sta, loc, cha = current_cha.split('.')
+            channel = {'network': net,
+                       'station': sta,
+                       'location': loc,
+                       'cha': cha}
+            data_days = {}
+            avg = 0
+            for day in days:
+                if day in sds_info[current_cha].keys():
+                    data_days[day] = {'percent': round((float(sds_info[current_cha][day][0])*100), 2),
                                       'gaps': sds_info[current_cha][day][1],
                                       'color': get_html_color_tab(sds_info[current_cha][day][0]),
                                       'date': datetime.strptime('%s.%s' % (year, day), '%Y.%j').strftime('%d %b %Y'),
-                                      'comment': get_comment(current_cha, day, year)}
-                avg += (float(sds_info[current_cha][day][0])*100)
-            else:
-                html_sds[key][day] = {'percent': 0,
+                                      'comment': get_info(current_cha, day, year)}
+                    avg += (float(sds_info[current_cha][day][0])*100)
+                else:
+                    data_days[day] = {'percent': 0,
                                       'gaps': 0,
-                                      'color': 'no_data'}
-        html_sds[key]['avg'] = round(float(avg/len(days)), 2)
-    return days_names, days, stations, html_sds
+                                      'color': 'no_data',
+                                      'date': datetime.strptime('%s.%s' % (year, day), '%Y.%j').strftime('%d %b %Y'),
+                                      'comment': get_info(current_cha, day, year)}
+            channel['data_days'] = data_days
+            channel['avg'] = round(float(avg/len(days)), 2)
+
+            data.append(channel)
+    return data
+
+def get_channel_filtered(channel, filter_option):
+    return True
+    #net, sta, loc, comp = channel.split('.')
+    #if (net == '*' or net in filter_option['networks']) and (sta == '*' or sta in filter_option['stations']) and (loc == '*' or loc in filter_option['locations']) and (comp == '*' or comp in filter_option['components']):
+    #    return True
+    #else:
+    #    return False
 
 
 def get_html_color_tab(percent):
