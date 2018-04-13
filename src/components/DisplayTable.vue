@@ -2,7 +2,26 @@
   <div>
     <button id="btn" class="" v-on:click="getData">Get Data</button>
     <h3  v-if="table.loading == false" >Not loaded</h3>
-    <h3  v-if="table.loading" >{{ table.data.status }}</h3>
+    <el-table
+      v-if="table.loading"
+      :data="table"
+      style="width: 100%">
+      <el-table-column
+        prop="station"
+        label="Stations"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        prop="network"
+        label="Network"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        prop="cha"
+        label="Channel">
+      </el-table-column>
+ </el-table>
+    <h3   >{{ table.data.status }}</h3>
   </div>
 </template>
 
@@ -21,7 +40,7 @@
       getData: function () {
         console.log('click');
         this.table.loading = true;
-        axios.get("ws/get_data?sds=ecuador&start=100,2016&end=101,2016")
+        axios.get("ws/get_data?sds=ecuador&start=100,2016&end=110,2016")
         .then((response)  =>  {
           this.loading = false;
           this.table.data = response.data;
