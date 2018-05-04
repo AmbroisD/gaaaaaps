@@ -5,7 +5,7 @@ import traceback
 from flask import Flask, request, render_template, Response, abort
 from scripts.utils import get_data
 from scripts.utils import error_response
-from scripts.utils import ok_response
+from scripts.utils import ok_response, ok_response_table
 
 app = Flask(__name__)
 app.debug = True
@@ -30,13 +30,15 @@ def get_table_data():
     loc = request.args.get('loc', default='*')
     if sds is not None and start is not None and end is not None:
         try:
-            return ok_response(get_data(sds,
-                                        [int(x) for x in start.split(',')],
-                                        [int(x) for x in end.split(',')],
-                                        filter_option={"stations": sta,
-                                                       "networks": net,
-                                                       "components": comp,
-                                                       "locations": loc}))
+            data, keys = get_data(sds,
+                                  [int(x) for x in start.split(',')],
+                                  [int(x) for x in end.split(',')],
+                                  filter_option={"stations": sta,
+                                                 "networks": net,
+                                                 "components": comp,
+                                                 "locations": loc})
+
+            return ok_response_table(data=data, keys=keys)
         except Exception as exception:
             return error_response('%s' % traceback.format_exc())
     else:

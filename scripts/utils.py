@@ -55,6 +55,17 @@ def ok_response(result=None):
                                separators=(',', ':')),
                     mimetype='application/json')
 
+def ok_response_table(data=None, keys=None):
+    response = {
+        'status': 'ok'
+    }
+    if data is not None:
+        response['result'] = data
+        response['keys'] = keys
+    return Response(json.dumps(response,
+                               separators=(',', ':')),
+                    mimetype='application/json')
+
 
 def get_name_date_list(days, year):
     """
@@ -92,7 +103,7 @@ def get_data(sds, start, end, filter_option):
     year = start[1]
     sds_info = get_sds_info(sds, year)["dict_info_station"]
     list_cha = sds_info.keys()
-
+    keys = days
     data = [] # init result
 
     for current_cha in list_cha:
@@ -106,23 +117,25 @@ def get_data(sds, start, end, filter_option):
             avg = 0
             for day in days:
                 if day in sds_info[current_cha].keys():
-                    data_days[day] = {'percent': round((float(sds_info[current_cha][day][0])*100), 2),
-                                      'gaps': sds_info[current_cha][day][1],
-                                      'color': get_html_color_tab(sds_info[current_cha][day][0]),
-                                      'date': datetime.strptime('%s.%s' % (year, day), '%Y.%j').strftime('%d %b %Y'),
-                                      'comment': get_info(current_cha, day, year)}
+                    channel[day] = {'color': get_html_color_tab(sds_info[current_cha][day][0]),
+                                    'info':{'percent': round((float(sds_info[current_cha][day][0])*100), 2),
+                                            'gaps': sds_info[current_cha][day][1],
+                                            'date': datetime.strptime('%s.%s' % (year, day), '%Y.%j').strftime('%d %b %Y'),
+                                            'comment': get_info(current_cha, day, year)}}
                     avg += (float(sds_info[current_cha][day][0])*100)
+
                 else:
-                    data_days[day] = {'percent': 0,
-                                      'gaps': 0,
-                                      'color': 'no_data',
-                                      'date': datetime.strptime('%s.%s' % (year, day), '%Y.%j').strftime('%d %b %Y'),
-                                      'comment': get_info(current_cha, day, year)}
-            channel['data_days'] = data_days
+                    channel[day] = {'color': 'cellno_data',
+                                    'info': {'percent': 0,
+                                             'gaps': 0,
+                                             'date': datetime.strptime('%s.%s' % (year, day), '%Y.%j').strftime('%d %b %Y'),
+                                             'comment': get_info(current_cha, day, year)}}
+            #channel['data_days'] = data_days
+
             channel['avg'] = round(float(avg/len(days)), 2)
 
             data.append(channel)
-    return data
+    return data, keys
 
 def get_channel_filtered(channel, filter_option):
     return True
@@ -137,33 +150,33 @@ def get_html_color_tab(percent):
     percent = percent * 100
     alpha = 0.8
     if percent >= 100.01:
-        color = 'pover'
+        color = 'cellpover'
         legend = 'overlap'
     elif percent >= 99.99:
-        color = 'p100'
+        color = 'cellp100'
         legend = '100 %'
     elif percent >= 99:
-        color = 'p99-100'
+        color = 'cellp99-100'
         alpha = 1
         legend = '99% - 100%'
     elif percent >= 90:
-        color = 'p90-99'
+        color = 'cellp90-99'
         legend = '90% - 99%'
     elif percent >= 75:
-        color = 'p75-90'
+        color = 'cellp75-90'
         alpha = 1
         legend = '75% - 90%'
     elif percent >= 50:
-        color = 'p50-75'
+        color = 'cellp50-75'
         legend = '50% - 75%'
     elif percent >= 25:
-        color = 'p25-50'
+        color = 'cellp25-50'
         legend = '25% - 50%'
     elif percent > 0:
-        color = 'p0-25'
+        color = 'cellp0-25'
         legend = '0% - 25%'
     elif percent == 0:
-        color = 'no_data'
+        color = 'cellno_data'
         legend = 'No data'
     return color
 
