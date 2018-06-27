@@ -74,7 +74,12 @@
 .el-table .cell {
   padding-left: 0px;
   line-height: 20px;
+  border-bottom: 0px;
 }
+
+.el-table td {
+  padding-left: 0px;
+  border-bottom: 0px;}
 
 .el-table--small td, .el-table--small th {padding: 0 0}
 
