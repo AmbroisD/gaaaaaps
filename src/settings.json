@@ -1,0 +1,11 @@
+{
+  "tableColor.pover": "#75cae6",
+  "tableColor.no_data": "#f8f8f8",
+  "tableColor.p100": " #6ec47e",
+  "tableColor.p99_100": "#a7d380",
+  "tableColor.p90_99": "#cfdf83",
+  "tableColor.p75_90": "#f7eb85",
+  "tableColor.p50_75": "#fcaa79",
+  "tableColor.p25_50": "#fb9d9d",
+  "tableColor.p0_25": "#d59bd6"
+}
