@@ -4,12 +4,15 @@ import locale from 'element-ui/lib/locale/lang/en'
 import 'element-ui/lib/theme-chalk/index.css'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
+import VueDataTables from 'vue-data-tables'
+
 
 //Vue.use(VueAxios, axios)
 //Vue.prototype.$http = axios
 Vue.config.productionTip = false
 
-
+//Vue.use(DataTables.DataTables)
+Vue.use(VueDataTables)
 // install Element-UI
 Vue.use(ElementUI, { size: 'small', locale }, axios)
 
@@ -18,7 +21,7 @@ import DisplayTable from './components/DisplayTable.vue'
 import DeviceForm from './components/DeviceForm.vue'
 import DeviceHeader from './components/DeviceHeader.vue'
 import DeviceAside from './components/DeviceAside.vue'
-//import DeviceTools from './components/DeviceTools.vue'
+import DeviceSetting from './components/DeviceSettings.vue'
 import DisplayLegend from './components/DisplayLegend.vue'
 
 // install globally cutom components
@@ -27,6 +30,7 @@ Vue.component('device-aside', DeviceAside)
 Vue.component('device-header', DeviceHeader)
 Vue.component('display-legend', DisplayLegend)
 Vue.component('device-form', DeviceForm)
+Vue.component('device-settings', DeviceSetting)
 //Vue.component('device-tools', DeviceTools)
 /*Vue.use(Element)*/   /* to do importer un par un */
 /* eslint-disable no-new */

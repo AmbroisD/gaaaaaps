@@ -7,24 +7,24 @@
             <div class="color p100"></div> 100 %
           </td>
           <td class="legend">
-            <div class="color p99-100"></div> 99 - 100 %
+            <div class="color p99_100"></div> 99 - 100 %
           </td>
           <td class="legend">
-            <div class="color p90-99"></div> 90 - 99 %
+            <div class="color p90_99"></div> 90 - 99 %
           </td>
           <td class="legend">
-            <div class="color p75-90"></div> 75 - 90 %
+            <div class="color p75_90"></div> 75 - 90 %
           </td>
         </tr>
         <tr>
           <td class="legend">
-            <div class="color p50-75"></div> 50 - 75 %
+            <div class="color p50_75"></div> 50 - 75 %
           </td>
           <td class="legend">
-            <div class="color p25-50"></div> 25 - 50 %
+            <div class="color p25_50"></div> 25 - 50 %
           </td>
           <td class="legend">
-            <div class="color p0-25"></div> 0 - 25 %
+            <div class="color p0_25"></div> 0 - 25 %
           </td>
           <td class="legend">
             <div class="color no_data"></div> No data
@@ -41,16 +41,6 @@
 </script>
 
 <style>
-
-.pover { background-color: black; }
-.no_data { background-color: #DBDBDB; }
-.p100 { background-color: #393; }
-.p99-100 { background-color: #90EE90; }
-.p90-99 { background-color: #33F; }
-.p75-90 { background-color: #ADD8E6; }
-.p50-75 { background-color: #FFB733; }
-.p25-50 { background-color: #939; }
-.p0-25 { background-color: #F33; }
 
 #legend-block {
   line-height: 10px;
@@ -72,7 +62,7 @@
   padding: 2px 5px;
   position: absolute;
   z-index: 1;
-  background-color: #eaeef4;
+  background-color: #ffffff;
   left: 30px;
   top: -1em;
 }
