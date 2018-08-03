@@ -34,6 +34,11 @@ def load_json(json_file):
     return sds_info
 
 
+def save_json(sds_info, json_file):
+    with open(json_file, 'w') as outfile:
+        json.dump(sds_info, outfile, indent=2)
+
+
 def error_response(message):
     response = {
         'status': 'error',
@@ -125,7 +130,7 @@ def get_data(sds, start, end, filter_option):
                     avg += (float(sds_info[current_cha][day][0])*100)
 
                 else:
-                    channel[day] = {'color': 'cellno_data',
+                    channel[day] = {'color': 'no_data',
                                     'info': {'percent': 0,
                                              'gaps': 0,
                                              'date': datetime.strptime('%s.%s' % (year, day), '%Y.%j').strftime('%d %b %Y'),
@@ -150,33 +155,33 @@ def get_html_color_tab(percent):
     percent = percent * 100
     alpha = 0.8
     if percent >= 100.01:
-        color = 'cellpover'
+        color = 'pover'
         legend = 'overlap'
     elif percent >= 99.99:
-        color = 'cellp100'
+        color = 'p100'
         legend = '100 %'
     elif percent >= 99:
-        color = 'cellp99-100'
+        color = 'p99_100'
         alpha = 1
         legend = '99% - 100%'
     elif percent >= 90:
-        color = 'cellp90-99'
+        color = 'p90_99'
         legend = '90% - 99%'
     elif percent >= 75:
-        color = 'cellp75-90'
+        color = 'p75_90'
         alpha = 1
         legend = '75% - 90%'
     elif percent >= 50:
-        color = 'cellp50-75'
+        color = 'p50_75'
         legend = '50% - 75%'
     elif percent >= 25:
-        color = 'cellp25-50'
+        color = 'p25_50'
         legend = '25% - 50%'
     elif percent > 0:
-        color = 'cellp0-25'
+        color = 'p0_25'
         legend = '0% - 25%'
     elif percent == 0:
-        color = 'cellno_data'
+        color = 'no_data'
         legend = 'No data'
     return color
 
@@ -213,3 +218,8 @@ def sds_filter(stations, sds_info_data, sta, net):
             new_stations = list(set(new_stations) & set(sta.split(',')))
 
     return new_stations, new_sds_info_data
+
+
+def get_last_modification(path):
+    nbs = os.path.getmtime(path)
+    return nbs
