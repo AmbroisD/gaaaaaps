@@ -53,7 +53,9 @@ def scan(file_data, dict_m_date, resultdir, year):
 def test_mseed_file(file_input):
     """Test the file """
     if not len(file_input.split('.')) == 7:
-        return False   
+        return False  
+    if file_input.split('.')[4] == 'L':
+        return False 
     if float(file_input.split('.')[-1]) in range(0, 367):
         return True
     else: 
@@ -69,6 +71,7 @@ def scan_sds(sds_path, year, resultdir):
                 last_m = get_last_modification(os.path.join(file_data[0],
                                                             file_data[1]))
                 if dict_m_date[file_data[1]] == last_m:
+                    print('already scan')
                     continue
                 else:
                     sds_info = scan(file_data, dict_m_date, resultdir, year)
