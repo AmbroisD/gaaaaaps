@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 import os
 import traceback
+import json
 from flask import Flask, request, render_template, Response, abort
-from scripts.utils import get_data
+from scripts.utils import get_data, get_info, get_station
 from scripts.utils import error_response
 from scripts.utils import ok_response, ok_response_table
+
+PROJET = 'ecuador'
 
 app = Flask(__name__)
 app.debug = True
@@ -45,33 +48,30 @@ def get_table_data():
         abort(400)
 
 
-@app.route('/ws/day', methods=['GET'])
-def get_image():
+@app.route('/ws/day', methods=['POST'])
+def get_info_station():
     """
-    return image
+    return info station for one day
     """
-    if ('sds' not in request.args or
-            'year' not in request.args or
-            'net' not in request.args or
-            'sta' not in request.args or
-            'day' not in request.args):
-        abort(400)
     try:
-        img_dir = os.path.join(DIR_DATA,
-                               request.args['sds'],
-                               request.args['year'], 'IMG')
-        start_filename = '%s.%s' % (request.args['net'], request.args['sta'])
-        end_filename = '%s.png' % request.args['day']
-        img_list = filter(lambda x: x.startswith(start_filename) and
-                          x.endswith(end_filename), os.listdir(img_dir))
-        if len(img_list) == 0:
-            filename = os.path.join('img/no_data.png')
-        else:
-            filename = os.path.join(img_dir, img_list[0])
+        s_detail = request.data
+        detail = json.loads(s_detail)
+        info = get_info(detail, PROJET)
+        return ok_response(info)
+    except Exception as exception:
+        return error_response('%s' % traceback.format_exc())
 
-        with open(filename, 'r') as current_f:
-            img = current_f.read()
-        return Response(img, mimetype='image/png')
+
+@app.route('/ws/station', methods=['POST'])
+def get_statistics_station():
+    """
+    return info station for the period
+    """
+    try:
+        s_detail = request.data
+        detail = json.loads(s_detail)
+        info = get_station(detail, PROJET)
+        return ok_response(info)
     except Exception as exception:
         return error_response('%s' % traceback.format_exc())
 
@@ -87,4 +87,4 @@ def set_comment():
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=50022)
+    app.run(host='0.0.0.0', port=50022)

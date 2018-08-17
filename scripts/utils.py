@@ -6,7 +6,8 @@ from datetime import datetime
 from flask import Response
 
 
-PATH_DATA_FILE = "%s/%s/%s/%s-sds.json"  # dir, projet, year, year
+PATH_DATA_FILE = "%s/%s/%s/global_json/sds_global.json"  # dir, projet, year, year
+PATH_INFO_FILE = "%s/%s/%s" # dir, projet, year
 # /hawat1/checksds/alparray/2016/2016-sds.json
 
 CURRENT_PATH = '/u/moana/user/ambrois/scripts/gaaaaaps/config'
@@ -88,9 +89,32 @@ def get_name_date(day, year):
     """
     return datetime.strptime('%s.%s' % (year, day), '%Y.%j').strftime('%d %b %Y')
 
-
-def get_info(channel, day, year):
+def get_comment(channel, day, year):
     return None
+
+def get_info(detail, sds):
+    """8G.EC04..VM2.json """
+    json_file = os.path.join(PATH_INFO_FILE % (DIR_DATA,
+                                               sds,
+                                               detail['day'][1][-4:]),
+                             "%s.%s.%s.%s.json" % (detail["network"],
+                                                   detail["station"],
+                                                   detail["location"],
+                                                   detail["cha"]))
+    date = detail['day'][0]
+    return json.load(open(json_file, 'r'))[date]
+
+
+def get_station(detail, sds):
+    """8G.EC04..VM2.json """
+    json_file = os.path.join(PATH_INFO_FILE % (DIR_DATA,
+                                               sds,
+                                               '2016'),
+                             "%s.%s.%s.%s.json" % (detail["network"],
+                                                   detail["station"],
+                                                   detail["location"],
+                                                   detail["cha"]))
+    return json.load(open(json_file, 'r'))
 
 
 def get_data(sds, start, end, filter_option):
@@ -101,12 +125,15 @@ def get_data(sds, start, end, filter_option):
     filter_option dict for filter result
 
     return list with this stucture
-    tableData = [{station: 'AJAC', location:'00', comp:'HH' , date1 , date2},
+    tableData = [{station:def get_info(channel, day, year):
+    return None 'AJAC', location:'00', comp:'HH' , date1 , date2},
     ]
     """
-    days = ['%03d' % x for x in range(start[0], end[0]+1)]
     year = start[1]
-    sds_info = get_sds_info(sds, year)["dict_info_station"]
+    days = []
+    for x in range(start[0], end[0]+1):
+        days.append('%s.%03d' % (year, x))
+    sds_info = get_sds_info(sds, year)
     list_cha = sds_info.keys()
     keys = days
     data = [] # init result
@@ -122,19 +149,21 @@ def get_data(sds, start, end, filter_option):
             avg = 0
             for day in days:
                 if day in sds_info[current_cha].keys():
-                    channel[day] = {'color': get_html_color_tab(sds_info[current_cha][day][0]),
-                                    'info':{'percent': round((float(sds_info[current_cha][day][0])*100), 2),
-                                            'gaps': sds_info[current_cha][day][1],
-                                            'date': datetime.strptime('%s.%s' % (year, day), '%Y.%j').strftime('%d %b %Y'),
-                                            'comment': get_info(current_cha, day, year)}}
-                    avg += (float(sds_info[current_cha][day][0])*100)
+                    channel[day] = {'color': get_html_color_tab(float(sds_info[current_cha][day]['percent'])),
+                                    'info':{'percent': round(float(sds_info[current_cha][day]['percent']), 2),
+                                            'gaps': sds_info[current_cha][day]['nb_gap'],
+                                            'overlap': sds_info[current_cha][day]['overlap'],
+                                            'total_gap': sds_info[current_cha][day]['total_gap'],
+                                            'date': datetime.strptime('%s' % day, '%Y.%j').strftime('%d %b %Y'),
+                                            'comment': get_comment(current_cha, day, year)}}
+                    avg += (float(sds_info[current_cha][day]['percent']))
 
                 else:
                     channel[day] = {'color': 'no_data',
                                     'info': {'percent': 0,
                                              'gaps': 0,
-                                             'date': datetime.strptime('%s.%s' % (year, day), '%Y.%j').strftime('%d %b %Y'),
-                                             'comment': get_info(current_cha, day, year)}}
+                                             'date': datetime.strptime('%s' % day, '%Y.%j').strftime('%d %b %Y'),
+                                             'comment': get_comment(current_cha, day, year)}}
             #channel['data_days'] = data_days
 
             channel['avg'] = round(float(avg/len(days)), 2)
@@ -152,7 +181,6 @@ def get_channel_filtered(channel, filter_option):
 
 
 def get_html_color_tab(percent):
-    percent = percent * 100
     alpha = 0.8
     if percent >= 100.01:
         color = 'pover'
@@ -180,9 +208,10 @@ def get_html_color_tab(percent):
     elif percent > 0:
         color = 'p0_25'
         legend = '0% - 25%'
-    elif percent == 0:
+    else :
         color = 'no_data'
         legend = 'No data'
+        print percent
     return color
 
 
@@ -190,7 +219,7 @@ def get_sds_info(sds, year):
     """
     return json object
     """
-    return load_json(PATH_DATA_FILE % (DIR_DATA, sds, year, year))
+    return load_json(PATH_DATA_FILE % (DIR_DATA, sds, year))
 
 
 def sds_filter(stations, sds_info_data, sta, net):

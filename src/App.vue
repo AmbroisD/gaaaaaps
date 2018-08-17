@@ -1,25 +1,73 @@
 <template>
-  <el-container style="height: 100vh;">
-    <el-header>
-      <device-header v-model="indexHeader" ></device-header>
-    </el-header>
-    <el-container>
-      <device-aside :table="activeTable" v-on:goHome="indexHeader = 'home'" v-model="activeIndex"></device-aside>
-        <el-main class="datatable-style" v-if="indexHeader == 'home'">
-          <device-form v-model="sdsForm" v-on:submitForm="getData" v-if="activeIndex == '1'"></device-form>
-          <display-legend v-if="activeIndex == '2'"></display-legend>
-          <display-table :settings="settings" v-model="dataTable" v-if="activeIndex == '2'"></display-table>
-        </el-main>
-        <el-main v-if="indexHeader == 'userSettings'">
-          <keep-alive>
-            <device-settings
-               v-model="settings"
-               @settings-updated="storeSettings">
-           </device-settings>
-        </keep-alive>
-        </el-main>
+  <div>
+    <el-container style="height: 100vh;">
+      <el-header>
+        <device-header
+          v-model="indexHeader" >
+        </device-header>
+      </el-header>
+      <el-container>
+        <device-aside
+          :table="activeTable"
+          v-on:goHome="indexHeader = 'home'"
+          v-model="activeIndex">
+        </device-aside>
+          <el-main
+            class="datatable-style"
+            v-if="indexHeader == 'home'">
+            <device-form
+              v-model="sdsForm"
+              v-on:submitForm="getData"
+              v-if="activeIndex == '1'">
+            </device-form>
+            <display-average
+              v-if="activeIndex == '4'"
+              v-model="dataTable">
+            </display-average>
+            <display-legend
+              v-if="activeIndex == '2'">
+            </display-legend>
+            <display-table
+              :detail="detail"
+              :infos="infos"
+              :settings="settings"
+              :station="station"
+              v-model="dataTable"
+              v-on:stationActive="loadStation"
+              v-on:dayActive="loadInfos"
+              v-if="activeIndex == '2'">
+            </display-table>
+            <el-dialog
+              :visible.sync="detail.active"
+              v-if="activeIndex == '2' && detail.active"
+              width="70%">
+            <info-device
+              :detail="detail"
+              :infos="infos">
+            </info-device>
+          </el-dialog>
+          <el-dialog
+            :visible.sync="showStationGraph"
+            width="70%">
+            <h2> {{ station.sta_info.station }}  </h2>
+            <display-graph
+              v-if="station.visible"
+              v-loading="loading"
+              :station="station">
+            </display-graph>
+          </el-dialog>
+          </el-main>
+          <el-main v-if="indexHeader == 'userSettings'">
+            <keep-alive>
+              <device-settings
+                 v-model="settings"
+                 @settings-updated="storeSettings">
+             </device-settings>
+          </keep-alive>
+          </el-main>
+      </el-container>
     </el-container>
-  </el-container>
+  </div>
 </template>
 
 <script>
@@ -33,12 +81,21 @@ export default {
   data() {
     return {
       settings: {},
+      loading: false,
+      showStationGraph: false,
       indexHeader: 'home',
       activeIndex: '1',
       activeTable: false,
       dataTable: {data: '',
                   loading: false},
-      sdsForm: {}
+      sdsForm: {},
+      infos: {visible: false,
+                       data:{},
+                       canvas:[]},
+      detail: {active: false},
+      station: {visible: false,
+                data:{},
+                sta_info: {}}
     };
   },
   mounted () {
@@ -121,6 +178,110 @@ export default {
         })
         // color[key.split('.')[0]]: storedValue != null ? storedValue : defaultValue
       }
+    },
+    julianToDatetime(julian_day, year) {
+        let d = new Date()
+        d.setTime(Date.UTC(year, 0 , 1, 0, 0, 0, 0))
+        d.setUTCDate(julian_day)
+        return d
+    },
+    dayDiff(d1, d2) {
+        d1 = d1.getTime() / 86400000;
+        d2 = d2.getTime() / 86400000;
+        return parseFloat(new Number(d2 - d1).toFixed(6));
+    },
+    loadInfos: function (val) {
+      this.detail = val
+      axios.post('/ws/day', this.detail).then((response)  =>  {
+        this.infos.data = response.data;
+        if (this.infos.data.status == 'error') {
+          this.$notify.info('No Data Available')
+        } else {
+
+          let iter = 0
+          let new_canvas = []
+          // if (this.infos.data.result['Gap'] != undefined ) {
+          for (let d of Object.entries(this.infos.data.result.Gap.PeriodList)) {
+            if (iter != 0) {
+              // console.log(this.dayDiff(last_end, new Date(d['1']['StartTime'])))
+              new_canvas.push([this.dayDiff(first_date, last_end), this.dayDiff(first_date, new Date(d['1']['StartTime'])),'#6ec47e'])
+            }
+            // console.log(this.dayDiff(new Date(d['1']['StartTime']),new Date(d['1']['EndTime'])))
+            if (iter == 0) {
+              new_canvas.push([0, this.dayDiff(new Date(d['1']['StartTime']), new Date(d['1']['EndTime'])), '#ff0000'])
+              var first_date = new Date(d['1']['StartTime'])
+            }
+            else {
+              new_canvas.push([this.dayDiff(first_date, new Date(d['1']['StartTime'])), this.dayDiff(first_date, new Date(d['1']['EndTime'])), '#ff0000'])
+            }
+            iter++
+            var last_end = new Date(d['1']['EndTime'])
+          }
+          this.infos.canvas = new_canvas
+          this.detail.active = true
+          this.infos.visible = true
+        }
+      }, (error)  =>  {
+        this.infos.visible = false
+        console.log('error');
+      })
+    },
+
+    loadStation: function (val) {
+      this.showStationGraph = true
+      this.station.sta_info = val
+      this.loading = true
+      axios.post('/ws/station', this.station.sta_info).then((response)  =>  {
+        this.station.data = response.data;
+        if (this.station.data.status == 'error') {
+          this.$notify.error(this.station.data.message)
+        } else {
+          this.station.visible = true
+          this.station.average = []
+          this.station.max = []
+          this.station.min = []
+          this.station.rms = []
+          this.station.stddev = []
+
+          for (let index in this.dataTable.data.keys ) {
+            let key = this.dataTable.data.keys[index]
+            let day_date = (this.julianToDatetime(key.split(".")[1],
+            key.split(".")[0]).getTime())
+
+            if (this.station.data.result[key] == null) {
+              this.station.average.push([ day_date, null ])
+              this.station.max.push([ day_date, null ])
+              this.station.min.push([ day_date, null ])
+              this.station.rms.push([ day_date, null ])
+              this.station.stddev.push([ day_date, null ])
+            } else {
+              let val = this.station.data.result[key]
+              this.station.average.push([ day_date, val.DataMetrics.Avg ])
+              this.station.max.push([ day_date, val.DataMetrics.Max ])
+              this.station.min.push([ day_date, val.DataMetrics.Min ])
+              this.station.rms.push([ day_date, val.DataMetrics.Rms ])
+              this.station.stddev.push([ day_date, val.DataMetrics.Stddev ])
+            }
+          }
+
+          let sortByFirstElement = (a, b) => {
+            a = a[0]
+            b = b[0]
+            return a == b ? 0 : a < b ? -1 : 1
+          }
+
+          this.station.average.sort(sortByFirstElement)
+          this.station.min.sort(sortByFirstElement)
+          this.station.max.sort(sortByFirstElement)
+          this.station.rms.sort(sortByFirstElement)
+          this.station.stddev.sort(sortByFirstElement)
+          this.station = Object.assign({}, this.station)
+          this.loading = false
+        }
+      }, (error)  =>  {
+        this.station.visible = false
+        console.log('error');
+      })
     }
   }
 }
@@ -163,24 +324,6 @@ export default {
     /*margin-bottom: 40px;*/
   }
 
-  /* .pover, .cellpover { background-color: #75cae6 !important;
-              }
-  .no_data, .cellno_data { background-color: #f8f8f8 !important;
-              }
-  .p100, .cellp100 { background-color: #6ec47e !important;
-              }
-  .p99-100, .cellp99-100 { background-color: #a7d380 !important;
-              }
-  .p90-99, .cellp90-99 { background-color: #cfdf83 !important;
-               }
-  .p75-90, .cellp75-90 { background-color: #f7eb85 !important;
-              }
-  .p50-75, .cellp50-75 { background-color: #fcaa79 !important;
-            }
-  .p25-50, .cellp25-50 { background-color: #fb9d9d !important;
-              }
-  .p0-25, .cellp0-25 { background-color: #d59bd6 !important;
-              } */
 
   .el-container:nth-child(5) .el-aside,
   .el-container:nth-child(6) .el-aside {
@@ -190,4 +333,11 @@ export default {
   .el-container:nth-child(7) .el-aside {
     line-height: 320px;
   }
+
+.el-collapse-item__header {
+    font-size: large;}
+
+.cursor-pointer {
+  cursor: pointer;
+}
 </style>

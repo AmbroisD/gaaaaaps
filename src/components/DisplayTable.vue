@@ -34,55 +34,31 @@
         v-for="key in value.data.keys"
         :render-header="renderHeader"
         :prop="key"
+        :key="key"
         :label="value.data.result[0][key].info.date"
         width="20">
         <template slot-scope="scope"></template>
       </el-table-column>
-
     </data-tables>
-    <div  id="detail" v-if="detail.active">
-      <el-collapse
-        id="detail"
-        v-if="detail.active"
-        v-model="activeNames"
-        @change="handleChange">
-        <el-collapse-item title="Station infos" name="1">
-          <div>
-            <ul>
-              <li>Station : {{ detail.station }}</li>
-              <li>Network : {{ detail.network }}</li>
-              <li>Location : {{ detail.location }}</li>
-              <li>Channel : {{ detail.cha }}</li>
-            </ul>
-          </div>
-        </el-collapse-item>
-        <el-collapse-item title="Data information" name="2">
-          <div></div>
-        </el-collapse-item>
-        <el-collapse-item title="Data quality" name="3">
-          <div></div>
-        </el-collapse-item>
-      </el-collapse>
-    </div>
   </div>
 </template>
 
 <script>
+import axios from 'axios'
   export default {
     data () {
       return {
-          activeNames: ['1','2'],
-          detail: {
-            active: false
-          }
    };
  },
-    props: ['value', 'settings'],
+    props: ['value', 'settings','infos','detail', 'station'],
     methods: {
       handleCellClassName (ev) {
         let result = []
         if (['station', 'network', 'cha'].indexOf(ev.column.property) >= 0) {
           result.push('cell-header')
+          if (ev.column.property == 'station') {
+            result.push('cursor-pointer')
+          }
         } else {
           result = result.concat(['cell-data', ev.row[ev.column.property].color])
         }
@@ -110,34 +86,52 @@
         return result.join(' ')
       },
       activeCell (row, column, cell, event) {
-        if (['station', 'network', 'cha'].indexOf(column.property) <= 0) {
-          console.log(row, column, cell, event)
+        if (['station', 'network', 'cha'].indexOf(column.property) < 0) {
+          console.log(['station', 'network', 'cha'].indexOf(column.property))
+          this.infos.visible = false
 
-          this.detail = Object.assign({}, this.detail, {
-            active: true,
+          var new_detail = Object.assign({}, this.detail, {
+            active: false,
             station:row.station,
             network: row.network,
             cha: row.cha,
             location: row.location,
+            gaps: row[column.property].info.gaps,
+            percent:row[column.property].info.percent,
             day: [column.property, column.label]
           })
+          // this.$emit('detail', new_detail)
+          this.$emit('dayActive', new_detail)
+        }
+        if (['station'].indexOf(column.property) == 0) {
+          this.activeStation(row)
         }
       },
-      // selectCells (row, column, cell, event) {
-      //   if (['station', 'network', 'cha'].indexOf(column.property) <= 0) {
-      //     console.log(row, column, cell, event);
-      //     // let target = document.getElementById(column.id)
-      //     this.addClass(cell, 'active');
-      //            }
-      // },
+      activeStation (row) {
+        var focus_station = Object.assign({}, this.station, {
+          active: false,
+          station:row.station,
+          network: row.network,
+          cha: row.cha,
+          location: row.location
+        })
+        this.$emit('station', focus_station)
+        this.$emit('stationActive', focus_station)
+
+      },
+
       renderHeader (h, { column }) {
       return h('div', { 'class': 'rotate' }, column.label)
-    },
-    handleChange(val) {
-        console.log(val);
       }
    }
  }
+ // selectCells (row, column, cell, event) {
+ //   if (['station', 'network', 'cha'].indexOf(column.property) <= 0) {
+ //     console.log(row, column, cell, event);
+ //     // let target = document.getElementById(column.id)
+ //     this.addClass(cell, 'active');
+ //            }
+ // },
 </script>
 
 <style>
@@ -229,10 +223,6 @@ td.cell-data.active {
   margin: 0 auto;
 }
 
-#detail {
-  line-height: 15px;
-  margin: 0 auto;
-  width: 90%
-}
+
 
 </style>
