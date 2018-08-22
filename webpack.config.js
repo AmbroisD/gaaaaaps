@@ -29,7 +29,7 @@ module.exports = (env, argv) => {
   ]
 
   if (argv.mode === 'development') {
-//    plugins.push(new BundleAnalyzerPlugin())
+    plugins.push(new BundleAnalyzerPlugin())
   } else {
     plugins.push(new UglifyJsPlugin({ sourceMap: true }))
   }
