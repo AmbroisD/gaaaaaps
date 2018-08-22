@@ -96,12 +96,13 @@ export default {
                   loading: false},
       sdsForm: {
                 rangedate:'',
-                s_date: '',
-                e_date: '',
-                y_date: '',
+                s_date: null,
+                e_date: null,
+                y_date: null,
                 comp: [],
                 type: [],
                 loc:[],
+                sta:[],
                 more_option: false,
                 network: [],
                 julian_day: true,
@@ -131,6 +132,8 @@ export default {
         this.sdsForm.loc = this.options.result.loc
         this.sdsForm.comp = ['Z']
         this.loadedOption = val.y_date
+        this.options.sta = []
+        this.generateTransferList()
       }, (error)  =>  {
         console.log('error');
                       })
@@ -244,6 +247,16 @@ export default {
         } else {
           this.dataTable.data.result[key].coloravg = this.settings['tableColor.no_data'].value
         }
+      }
+    },
+    generateTransferList(){
+      let sta = this.options.result.station
+      for (let i = 1; i <= sta.length; i++) {
+        this.options.sta.push({
+          key: i,
+          label: sta[i],
+          disabled: false
+        });
       }
     },
     loadInfos: function (val) {

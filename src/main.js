@@ -1,23 +1,24 @@
 import Vue from 'vue'
+//const ElementUI = () => import('element-ui')
 import ElementUI from 'element-ui'
 import locale from 'element-ui/lib/locale/lang/en'
 import 'element-ui/lib/theme-chalk/index.css'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
 import VueDataTables from 'vue-data-tables'
-import HighchartsVue from 'highcharts-vue'
+
 
 //Vue.use(VueAxios, axios)
 //Vue.prototype.$http = axios
 Vue.config.productionTip = false
 
 //Vue.use(DataTables.DataTables)
-Vue.use(HighchartsVue)
 Vue.use(VueDataTables)
 // install Element-UI
 Vue.use(ElementUI, { size: 'small', locale }, axios)
 
 // load custom components
+
 import DisplayGraph from './components/DisplayGraph.vue'
 import DisplayTable from './components/DisplayTable.vue'
 import DeviceForm from './components/DeviceForm.vue'
