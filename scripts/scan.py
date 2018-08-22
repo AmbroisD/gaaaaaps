@@ -31,6 +31,9 @@ def scan_file(file_data, resultdir):
                                                                  'tmp')))
     tmp_result = load_json(os.path.join(resultdir,
                                         'tmp.json'))
+    tmp_result["Avg"] = int(float(tmp_result["Avg"]))
+    tmp_result["Stddev"] = int(float(tmp_result["Stddev"]))
+    tmp_result["Rms"] = int(float(tmp_result["Rms"]))
     if os.path.exists(os.path.join(resultdir, '%s.json' % file_data[1].split('.D.')[0])):
         station_dict = load_json(os.path.join(resultdir,
                                               '%s.json' % file_data[1].split('.D.')[0]))
@@ -38,8 +41,8 @@ def scan_file(file_data, resultdir):
     else:
         station_dict = {}
         station_dict[file_data[1].split('.D.')[1]] = tmp_result
-    save_json(station_dict,'%s.json' % os.path.join(resultdir,
-                                                    file_data[1].split('.D.')[0]))
+    save_json(station_dict, '%s.json' % os.path.join(resultdir,
+                                                     file_data[1].split('.D.')[0]))
 
 
 def scan(file_data, dict_m_date, resultdir, year,  global_dir):

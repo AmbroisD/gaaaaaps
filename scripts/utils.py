@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 import os
 import json
-from datetime import datetime,  timedelta
+from datetime import datetime, timedelta
 from flask import Response
 from config import config
 #from config import PATH_DATA_FILE, PATH_INFO_FILE, DIR_DATA, SDS_AVAILABLE, PROJET
@@ -28,7 +28,7 @@ def load_json(json_file):
 
 def save_json(sds_info, json_file):
     with open(json_file, 'w') as outfile:
-        json.dump(sds_info, outfile, indent=2)
+        json.dump(sds_info, outfile)
 
 
 def error_response(message):

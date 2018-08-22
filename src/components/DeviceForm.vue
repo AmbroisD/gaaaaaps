@@ -27,7 +27,6 @@
             align="right"
             unlink-panels
             range-separator="To"
-            format="yyyy"
             start-placeholder="Start date"
             end-placeholder="End date"
             :picker-options="pickerOptions2">
@@ -65,7 +64,7 @@
             prop="e_date">
             <el-input-number
               v-model="value.e_date"
-              :min="1"
+              :min="2"
               :max="366">
             </el-input-number>
           </el-form-item>
@@ -81,7 +80,8 @@
             inactive-text="date">
           </el-switch>
         </el-form-item>
-        <el-form-item>
+        <el-form-item
+          v-if="value.y_date != null">
           <el-button class="buttonform" type="primary" @click.prevent="updateDate(value)">Next</el-button>
         </el-form-item>
        </div>
@@ -159,6 +159,17 @@
           <el-button class="buttonform" size="mini" round type="text" @click.prevent="selectAll('loc','loc')">Select all</el-button>
           <el-button class="buttonform" size="mini" round type="text" @click.prevent="deselectAll('loc')">Deselect all</el-button>
         </el-checkbox-group>
+      </el-form-item>
+      <el-form-item>
+        <h3>Select station by station</h3>
+        <el-transfer
+          style="text-align: left; display: inline-block"
+          filterable
+          :titles="['All Stations', 'Your List']"
+          :button-texts="['Remove', 'Add']"
+          v-model="value.sta"
+          :data="options.sta">
+        </el-transfer>
       </el-form-item>
       <el-form-item>
         <el-button class="buttonform" @click.prevent="active = 0">Previous</el-button>
