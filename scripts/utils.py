@@ -2,16 +2,10 @@
 # -*- coding:utf-8 -*-
 import os
 import json
-from datetime import datetime
+from datetime import datetime,  timedelta
 from flask import Response
-
-
-PATH_DATA_FILE = "%s/%s/%s/global_json/sds_global.json"  # dir, projet, year, year
-PATH_INFO_FILE = "%s/%s/%s" # dir, projet, year
-# /hawat1/checksds/alparray/2016/2016-sds.json
-
-CURRENT_PATH = '/u/moana/user/ambrois/scripts/gaaaaaps/config'
-
+from config import config
+#from config import PATH_DATA_FILE, PATH_INFO_FILE, DIR_DATA, SDS_AVAILABLE, PROJET
 
 def load_config(config_file):
     """
@@ -21,9 +15,6 @@ def load_config(config_file):
     dir_data = config['dir_data']
     sds_available = config['sds']
     return dir_data, sds_available
-
-
-DIR_DATA, SDS_AVAILABLE = load_config(os.path.join(CURRENT_PATH, "config.json"))
 
 
 def load_json(json_file):
@@ -94,9 +85,9 @@ def get_comment(channel, day, year):
 
 def get_info(detail, sds):
     """8G.EC04..VM2.json """
-    json_file = os.path.join(PATH_INFO_FILE % (DIR_DATA,
-                                               sds,
-                                               detail['day'][1][-4:]),
+    json_file = os.path.join(config.PATH_INFO_FILE % (config.DIR_DATA,
+                                                      sds,
+                                                      detail['day'][1][-4:]),
                              "%s.%s.%s.%s.json" % (detail["network"],
                                                    detail["station"],
                                                    detail["location"],
@@ -107,9 +98,12 @@ def get_info(detail, sds):
 
 def get_station(detail, sds):
     """8G.EC04..VM2.json """
-    json_file = os.path.join(PATH_INFO_FILE % (DIR_DATA,
-                                               sds,
-                                               '2016'),
+    y_date = datetime.strptime(detail['y_date'][:19],
+                               '%Y-%m-%dT%H:%M:%S') + timedelta(hours=2)
+    year = y_date.year
+    json_file = os.path.join(config.PATH_INFO_FILE % (config.DIR_DATA,
+                                                      sds,
+                                                      year),
                              "%s.%s.%s.%s.json" % (detail["network"],
                                                    detail["station"],
                                                    detail["location"],
@@ -117,35 +111,28 @@ def get_station(detail, sds):
     return json.load(open(json_file, 'r'))
 
 
-def get_data(sds, start, end, filter_option):
-    """
-    sds : name of sds
-    start: list [day, year] exemple : [100, 2016]
-    end: list [day, year] exemple : [130, 2016]
-    filter_option dict for filter result
+def get_data(form):
 
-    return list with this stucture
-    tableData = [{station:def get_info(channel, day, year):
-    return None 'AJAC', location:'00', comp:'HH' , date1 , date2},
-    ]
-    """
-    year = start[1]
-    days = []
-    for x in range(start[0], end[0]+1):
-        days.append('%s.%03d' % (year, x))
-    sds_info = get_sds_info(sds, year)
+    if form['julian_day']:
+        y_date = datetime.strptime(form['y_date'][:19],
+                                   '%Y-%m-%dT%H:%M:%S') + timedelta(hours=2)
+        year = y_date.year
+        days = []
+        for current_x in range(form['s_date'], form['e_date']):
+            days.append('%s.%03d' % (year, current_x))
+
+    sds_info = get_sds_info(config.PROJET, year)
     list_cha = sds_info.keys()
     keys = days
     data = [] # init result
 
     for current_cha in list_cha:
-        if get_channel_filtered(current_cha, filter_option):
+        if get_channel_filtered(current_cha, form):
             net, sta, loc, cha = current_cha.split('.')
             channel = {'network': net,
                        'station': sta,
                        'location': loc,
                        'cha': cha}
-            data_days = {}
             avg = 0
             for day in days:
                 if day in sds_info[current_cha].keys():
@@ -171,13 +158,16 @@ def get_data(sds, start, end, filter_option):
             data.append(channel)
     return data, keys
 
-def get_channel_filtered(channel, filter_option):
-    return True
-    #net, sta, loc, comp = channel.split('.')
-    #if (net == '*' or net in filter_option['networks']) and (sta == '*' or sta in filter_option['stations']) and (loc == '*' or loc in filter_option['locations']) and (comp == '*' or comp in filter_option['components']):
-    #    return True
-    #else:
-    #    return False
+
+def get_channel_filtered(channel, form):
+    flag = False
+    net, sta, loc, comp = channel.split('.')
+    if net in form['network']:
+        if comp[-1] in form['comp']:
+            if loc in form['loc']:
+                if comp[:2] in form['type']:
+                    flag = True
+    return flag
 
 
 def get_html_color_tab(percent):
@@ -219,7 +209,7 @@ def get_sds_info(sds, year):
     """
     return json object
     """
-    return load_json(PATH_DATA_FILE % (DIR_DATA, sds, year))
+    return load_json(config.PATH_DATA_FILE % (config.DIR_DATA, sds, year))
 
 
 def sds_filter(stations, sds_info_data, sta, net):
@@ -247,6 +237,39 @@ def sds_filter(stations, sds_info_data, sta, net):
             new_stations = list(set(new_stations) & set(sta.split(',')))
 
     return new_stations, new_sds_info_data
+
+
+def get_list_for_form(detail):
+    y_d = datetime.strptime(detail['y_date'][:19],
+                               '%Y-%m-%dT%H:%M:%S') + timedelta(hours=2)
+    year = y_d.year
+    dir = os.path.join(config.DIR_DATA, config.PROJET, '%s' % year)
+    if not os.path.isdir(dir):
+        return {'no_data': [True, year]}
+    list_json = os.listdir(dir)
+    projet = {'no_data': [False, year],
+              'net': [],
+              'comp': [],
+              'type': [],
+              'loc': [],
+              'station': []
+             }
+
+    for json_file in list_json:
+
+        if os.path.isfile(os.path.join(config.DIR_DATA, config.PROJET, '%s' % year, json_file)):
+            info = json_file.split('.')
+            if info[0] not in projet['net']:
+                projet['net'].append(info[0])
+            if info[1] not in projet['station']:
+                projet['station'].append(info[1])
+            if info[2] not in projet['loc']:
+                projet['loc'].append(info[2])
+            if info[3][:2] not in projet['type']:
+                projet['type'].append(info[3][:2])
+            if info[3][-1] not in projet['comp']:
+                projet['comp'].append(info[3][-1])
+    return projet
 
 
 def get_last_modification(path):

@@ -1,8 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import os, sys
+import os
+import sys
 import json
-from datetime import datetime , timedelta
+from datetime import datetime, timedelta
 #from obspy import UTCdatetime
 
 def load_json(json_file):
@@ -56,16 +57,12 @@ def get_resume_json(json_file):
 #get_list_station_chan(DIR_SAVE)
 
 
-def main():
-    list_json = os.listdir('.')
+def global_scan(resultdir, global_dir):
+    list_json = os.listdir(resultdir)
     sds_info = {}
     for json_file in list_json:
         if os.path.isfile(json_file):
             info = get_resume_json(json_file)
             sds_info[json_file[:-5]] = info
-    save_json(sds_info, 'sds_global.json')
+    save_json(sds_info, os.path.join(global_dir, 'sds_global.json'))
     #get_list_station_chan(DIR_SAVE)
-
-
-if __name__ == '__main__':
-    main()

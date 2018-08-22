@@ -1,11 +1,13 @@
 <template>
   <div>
+    <h1 class="center">Percent average on the time period</h1>
+    <display-legend></display-legend>
     <data-tables
-     id="table"
+     id="table-process"
      v-loading="value.loading"
      :pagination-props="{ pageSizes: [15, 20, 30, 50] }"
      :data="value.data.result"
-     width="700"
+     style="width: 70%"
      height="500">
      <el-table-column
        fixed
@@ -32,16 +34,15 @@
        prop="avg"
        label='Percent Average'
        sortable
-       width="400">
+       width="500">
        <template slot-scope="scope">
          <el-progress
-           class="row-progress"
+           class="row-progress test"
            :text-inside="true"
            :stroke-width="18"
-           :percentage="50"
-           color="rgba(142, 113, 199, 0.7)">
+           :percentage="scope.row.avg"
+           :color="scope.row.coloravg">
          </el-progress>
-         <h3>{{ scope.row.avg }}</h3>
        </template>
      </el-table-column>
    </data-tables>
@@ -52,10 +53,14 @@
   export default {
     data () {
       return {
+        show: false,
+        color:''
    };
   },
-  props: ['value']
-}
+  props: ['value', 'settings']
+  }
+
+
 </script>
 
 <style>
@@ -66,12 +71,22 @@
   /* display: table; */
   display: block;
   font-size: 13px;
-  color: #fff;
-  padding-top : 12px;
+  padding-left: 12px;
   top: 0;
   right: 8px;
 }
-.progress-title {
-      padding-left: 30%;
+#table-process {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 40%;
+}
+.center{
+  text-align: center;
+  line-height: 50px;
+  font-size: 25px;
+}
+.test svg > path:first-of-type{
+  stroke: red !important;
 }
 </style>

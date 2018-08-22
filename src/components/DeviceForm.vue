@@ -1,50 +1,50 @@
 <template>
   <div>
+    <el-steps id="steps" :space="200" :active="active" finish-status="success" >
+      <el-step title="Date" description="Choose you time period"></el-step>
+      <el-step title="Filter"  description="Filtered data by criteria"></el-step>
+      <el-step title="Resume" description="Submit form"></el-step>
+    </el-steps>
     <el-form
      id="form"
-      :model="sdsForm"
+      :model="value"
       :rules="rules"
       ref="value"
       label-width="120px"
       class="value">
-      <el-form-item
-        label="Project"
-        prop="project">
-        <el-select
-          v-model="sdsForm.project"
-          placeholder="please select your project">
-          <el-option
-            v-for="item in options.project"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value" >
-          </el-option>
-        </el-select>
-      </el-form-item>
-      <div class="block">
-        <span class="demonstration">With quick options</span>
-        <el-date-picker
-        v-model="sdsForm.rangedate"
-        type="daterange"
-        align="right"
-        unlink-panels
-        range-separator="To"
-        start-placeholder="Start date"
-        end-placeholder="End date"
-        :picker-options="pickerOptions2">
-        </el-date-picker>
+      <div
+        v-if="active == 0">
+        <h3>Choose you time period</h3>
+      <div
+        v-if="value.julian_day== false">
+        <el-form-item
+          label="Time period"
+          prop="rangedate">
+          <el-date-picker
+            v-model="value.rangedate"
+            type="daterange"
+            label-position="top"
+            align="right"
+            unlink-panels
+            range-separator="To"
+            format="yyyy"
+            start-placeholder="Start date"
+            end-placeholder="End date"
+            :picker-options="pickerOptions2">
+          </el-date-picker>
+        </el-form-item>
       </div>
-
+      <div
+        v-if="value.julian_day == true">
       <el-row>
-        <el-col :span="4">
+        <el-col :span="6">
           <el-form-item
             label="Year"
-            v-if="sdsForm.julian_day== true"
             prop="y_date">
             <el-date-picker
               type="year"
               placeholder="Pick a year"
-              v-model="sdsForm.y_date">
+              v-model="value.y_date">
             </el-date-picker>
           </el-form-item>
         </el-col>
@@ -53,17 +53,10 @@
             label="Start Date"
             prop="s_date">
             <el-input-number
-              v-if="sdsForm.julian_day == true"
-              v-model="sdsForm.s_date"
+              v-model="value.s_date"
               :min="1"
               :max="366">
             </el-input-number>
-            <el-date-picker
-              v-if="sdsForm.julian_day== false"
-              type="date"
-              placeholder="Pick a start date"
-              v-model="sdsForm.s_date">
-            </el-date-picker>
           </el-form-item>
         </el-col>
         <el-col :span="4">
@@ -71,76 +64,127 @@
             label="End Date"
             prop="e_date">
             <el-input-number
-              v-if="sdsForm.julian_day == true"
-              v-model="sdsForm.e_date"
+              v-model="value.e_date"
               :min="1"
               :max="366">
             </el-input-number>
-            <el-date-picker
-              v-if="sdsForm.julian_day== false"
-              type="date"
-              placeholder="Pick a end date"
-              v-model="sdsForm.e_date">
-            </el-date-picker>
           </el-form-item>
         </el-col>
-        <el-col :span="4">
-          <el-form-item>
-            <el-switch
-              prop="julian_day"
-              v-model="sdsForm.julian_day"
-              active-text="julian day"
-              inactive-text="date">
-            </el-switch>
-          </el-form-item>
-        </el-col>
-      </el-row>
-
-
-
-      <el-form-item
-        label="More option"
-        prop="more_option">
-        <el-switch
-          v-model="sdsForm.more_option">
-        </el-switch>
+        </el-row>
+        </div>
+        <el-form-item>
+          <el-switch
+            disabled
+            prop="julian_day"
+            v-model="value.julian_day"
+            active-text="julian day"
+            inactive-text="date">
+          </el-switch>
+        </el-form-item>
+        <el-form-item>
+          <el-button class="buttonform" type="primary" @click.prevent="updateDate(value)">Next</el-button>
+        </el-form-item>
+       </div>
+       <div
+        v-if="active == 1 && options.result != null && options.result.no_data[0]">
+       <h3>No data for {{ options.result.no_data[1] }}</h3>
+       <el-form-item>
+         <el-button class="buttonform" @click.prevent="active = 0">Previous</el-button>
+       </el-form-item>
+       </div>
+       <div
+         v-if="active == 1 && options.result != null && !options.result.no_data[0]">
+       <h3>You can filter data by criteria</h3>
       </el-form-item>
       <el-form-item
-        v-if="sdsForm.more_option == true"
-        label="Component"
-        prop="type">
-        <el-checkbox-group
-          v-model="sdsForm.type">
-          <el-checkbox label="HH" name="type"></el-checkbox>
-          <el-checkbox label="HN" name="type"></el-checkbox>
-          <el-checkbox label="DN" name="type"></el-checkbox>
-          <el-checkbox label="EH" name="type"></el-checkbox>
-          <el-checkbox label="SH" name="type"></el-checkbox>
-        </el-checkbox-group>
-      </el-form-item>
-      <el-form-item
-        v-if="sdsForm.more_option == true"
         label="Network"
         prop="network">
         <el-checkbox-group
-          v-model="sdsForm.network">
+          v-model="value.network">
           <el-checkbox
-            v-for="net in options.network[sdsForm.network]"
+            v-for="net in options.result.net"
             :key="net"
             :label="net"
             :value="net"
-            name="network"></el-checkbox>
+            name="network">
+          </el-checkbox>
+          <el-button class="buttonform" size="mini" round type="text" @click.prevent="selectAll('net','network')">Select all</el-button>
+          <el-button class="buttonform" size="mini" round type="text" @click.prevent="deselectAll('network')">Deselect all</el-button>
+        </el-checkbox-group>
+      </el-form-item>
+      <el-form-item
+        label="Channel prefix"
+        prop="type">
+        <el-checkbox-group
+          v-model="value.type">
+          <el-checkbox
+            v-for="type in options.result.type"
+             :key="type"
+             :label="type"
+             :value="type"
+             name="type">
+           </el-checkbox>
+            <el-button class="buttonform" size="mini" round type="text" @click.prevent="selectAll('type','type')">Select all</el-button>
+            <el-button class="buttonform" size="mini" round type="text" @click.prevent="deselectAll('type')">Deselect all</el-button>
+        </el-checkbox-group>
+      </el-form-item>
+      <el-form-item
+        label="Component"
+        prop="comp">
+        <el-checkbox-group
+          v-model="value.comp">
+          <el-checkbox
+            v-for="comp in options.result.comp"
+            :key="comp"
+            :label="comp"
+            :value="comp"
+            name="comp">
+          </el-checkbox>
+          <el-button class="buttonform" size="mini" round type="text" @click.prevent="selectAll('comp','comp')">Select all</el-button>
+          <el-button class="buttonform" size="mini" round type="text" @click.prevent="deselectAll('comp')">Deselect all</el-button>
+        </el-checkbox-group>
+      </el-form-item>
+      <el-form-item
+        label="Location Code"
+        prop="loc">
+        <el-checkbox-group
+          v-model="value.loc">
+          <el-checkbox
+            v-for="loc in options.result.loc"
+            :key="loc"
+            :label="loc"
+            :value="loc"
+            name="loc">
+          </el-checkbox>
+          <el-button class="buttonform" size="mini" round type="text" @click.prevent="selectAll('loc','loc')">Select all</el-button>
+          <el-button class="buttonform" size="mini" round type="text" @click.prevent="deselectAll('loc')">Deselect all</el-button>
         </el-checkbox-group>
       </el-form-item>
       <el-form-item>
-        <el-button
-          type="primary"
-          @click="submitForm(sdsForm)">
-          Submit</el-button>
-        <el-button
-          @click="resetForm(sdsForm)">
-          Reset</el-button>
+        <el-button class="buttonform" @click.prevent="active = 0">Previous</el-button>
+        <el-button class="buttonform" type="primary" @click.prevent="active = 2">Next</el-button>
       </el-form-item>
+      </div>
+      <div v-if="active == 2">
+        <h3>Resume form</h3>
+        <ul class="resume">
+         <li v-if="value.julian_day">Time period: {{ value.y_date }}   Start: {{ value.s_date }}    End: {{ value.e_date }}</li>
+         <li v-if="!value.julian_day">Time period: {{ value.rangedate }}</li>
+         <li>Network: {{ value.network }}</li>
+         <li>Channel prefix: {{ value.type }}</li>
+         <li>Component: {{ value.comp }}</li>
+         <li>Location code: {{ value.loc }}</li>
+        </ul>
+        <el-form-item>
+          <el-button
+          class="buttonform"
+          @click.prevent="active = 1">Previous</el-button>
+          <el-button
+            type="primary"
+            @click="submitForm(value)">
+            Submit</el-button>
+        </el-form-item>
+      </div>
     </el-form>
   </div>
 </template>
@@ -148,6 +192,8 @@
   export default {
     data() {
       return {
+        active: 0,
+        load: null,
         pickerOptions2: {
           shortcuts: [{
             text: 'Last week',
@@ -176,49 +222,7 @@
           }]
         },
         data: '',
-        sdsForm: {
-                  rangedate:'',
-                  project: '',
-                  s_date: '',
-                  e_date: '',
-                  y_date: '',
-                  type: ['HN','HH','DN','EH', 'SH'],
-                  more_option: false,
-                  network: ['8G', 'EC'],
-                  julian_day: false,
-                },
-        options: {
-                  project: [{
-                              value: 'ecuador',
-                              label: 'Ecuador',
-                              net: ['8G','EC'],
-                              comp: ['HN','HH','DN','EH', 'SH']
-                            }, {
-                              value: 'corinthe',
-                              label: 'Corinthe',
-                              net: ['XX','UU'],
-                              comp: ['HN','HH','DN','EH', 'SH']
-                            }, {
-                              value: 'alparray',
-                              label: 'Alparray',
-                              net: ['Z3'],
-                              comp: ['HN','HH','DN','EH', 'SH']
-                            }],
-                    component: {
-                                ecuador: ['HN','HH','DN','EH', 'SH'],
-                                corinthe: ['HN','HH','DN','EH', 'SH'],
-                                alparray: ['HN','HH','DN','EH', 'SH']
-                              },
-                    network: {
-                                ecuador: ['8G', 'EC'],
-                                corinthe: ['XX'],
-                                alparray: ['Z3']
-                             }
-                  },
         rules: {
-              project: [
-                { required: true, message: 'Please select Project', trigger: 'change' }
-              ],
               y_date: [
                 { required: false, message: 'Please pick a Year', trigger: 'change' }
               ],
@@ -229,19 +233,30 @@
                 { required: false, message: 'Please pick a end date', trigger: 'change' }
               ],
               type: [
-                { type: 'array', required: false, message: 'Please select at least one component', trigger: 'change' }
+                { type: 'array', required: true, message: 'Please select at least one channel prefix', trigger: 'change' }
+              ],
+              loc: [
+                { type: 'array', required: true, message: 'Please select at least one location', trigger: 'change' }
               ],
               network: [
-                { required: false, message: 'Please select network', trigger: 'change' }
+                { type: 'array', required: true, message: 'Please select at least one network', trigger: 'change' }
               ],
+              comp : [
+                { type: 'array', required: true, message: 'Please select at least one component', trigger: 'change' }
+              ],
+
               julian_day: [
                 { required: false, message: 'Please select network', trigger: 'change' }
               ]
             }
           };
         },
-        props: ['value'],
+        props: ['value', 'options', 'loadedOption'],
+        mounted () {
+          this.load = this.loadedOption
+        },
         methods: {
+
           // submitForm(evt) {
           //   formName.validate(valid) => {
           //     if (valid) {
@@ -256,7 +271,21 @@
           },
           resetForm(formName) {
             this.$refs[formName].resetFields();
-          }
+          },
+          deselectAll(val) {
+            this.value[val] = []
+          },
+          selectAll(val, val2) {
+            this.value[val2] = this.options.result[val]
+          },
+          updateDate(formName) {
+            if (this.value.y_date == this.load) {
+              this.active = 1
+          } else {
+              this.$emit('updateDate', formName)
+              this.active = 1
+              this.load = this.value.y_date
+          }}
         }
       }
   </script>
@@ -264,8 +293,21 @@
 
   <style>
   #form {
-    /* display: table; */
-    margin: 0 auto;
+    line-height: 20px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  #steps {
+    line-height: 0px;
+    margin-left: 150px;
   }
 
+.buttonform {
+    margin-left: 12px;
+}
+.resume {
+    font-size: medium;
+    line-height: 30px;
+    width: 90%;
+}
   </style>

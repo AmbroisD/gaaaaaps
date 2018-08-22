@@ -55,7 +55,6 @@
   width: 100%
 }
 #table-legend td {
-  padding: 5px;
 }
 
 #inset-label {
@@ -63,7 +62,7 @@
   position: absolute;
   z-index: 1;
   background-color: #ffffff;
-  left: 30px;
+  left: 35px;
   top: -1em;
 }
 
@@ -72,7 +71,7 @@
   vertical-align: middle;
   border: 1px solid gray;
   margin-right: 10px;
-  width: 60px;
+  width: 55px;
   height: 20px;
 }
 

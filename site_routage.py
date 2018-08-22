@@ -4,11 +4,10 @@ import os
 import traceback
 import json
 from flask import Flask, request, render_template, Response, abort
-from scripts.utils import get_data, get_info, get_station
+from scripts.utils import get_data, get_info, get_station, get_list_for_form
 from scripts.utils import error_response
 from scripts.utils import ok_response, ok_response_table
-
-PROJET = 'ecuador'
+from config import config
 
 app = Flask(__name__)
 app.debug = True
@@ -19,7 +18,18 @@ def index():
     return render_template('app.html')
 
 
-@app.route('/ws/get_data', methods=["GET"])
+@app.route('/ws/get_data', methods=["POST"])
+def get_table():
+    try:
+        s_form = request.data
+        form = json.loads(s_form)
+        data, keys = get_data(form)
+
+        return ok_response_table(data=data, keys=keys)
+    except Exception as exception:
+        return error_response('%s' % traceback.format_exc())
+
+
 def get_table_data():
     """
     main fonction
@@ -56,7 +66,7 @@ def get_info_station():
     try:
         s_detail = request.data
         detail = json.loads(s_detail)
-        info = get_info(detail, PROJET)
+        info = get_info(detail, config.PROJET)
         return ok_response(info)
     except Exception as exception:
         return error_response('%s' % traceback.format_exc())
@@ -70,8 +80,19 @@ def get_statistics_station():
     try:
         s_detail = request.data
         detail = json.loads(s_detail)
-        info = get_station(detail, PROJET)
+        info = get_station(detail, config.PROJET)
         return ok_response(info)
+    except Exception as exception:
+        return error_response('%s' % traceback.format_exc())
+
+
+@app.route('/ws/form', methods=['POST'])
+def get_form():
+    try:
+        s_detail = request.data
+        detail = json.loads(s_detail)
+        projet = get_list_for_form(detail['val'])
+        return ok_response(projet)
     except Exception as exception:
         return error_response('%s' % traceback.format_exc())
 

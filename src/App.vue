@@ -17,12 +17,16 @@
             v-if="indexHeader == 'home'">
             <device-form
               v-model="sdsForm"
+              :options="options"
+              :loadedOption="loadedOption"
               v-on:submitForm="getData"
+              v-on:updateDate="loadOption"
               v-if="activeIndex == '1'">
             </device-form>
             <display-average
               v-if="activeIndex == '4'"
-              v-model="dataTable">
+              v-model="dataTable"
+              :settings="settings">
             </display-average>
             <display-legend
               v-if="activeIndex == '2'">
@@ -81,6 +85,8 @@ export default {
   data() {
     return {
       settings: {},
+      options:{},
+      loadedOption: null,
       loading: false,
       showStationGraph: false,
       indexHeader: 'home',
@@ -88,7 +94,19 @@ export default {
       activeTable: false,
       dataTable: {data: '',
                   loading: false},
-      sdsForm: {},
+      sdsForm: {
+                rangedate:'',
+                s_date: '',
+                e_date: '',
+                y_date: '',
+                comp: [],
+                type: [],
+                loc:[],
+                more_option: false,
+                network: [],
+                julian_day: true,
+                visible: false
+              },
       infos: {visible: false,
                        data:{},
                        canvas:[]},
@@ -101,17 +119,32 @@ export default {
   mounted () {
   this.loadSettings()
   this.initStyle()
+  // this.loadOption()
   },
   methods: {
-    getData: function () {
-      console.log('click');
+    loadOption(val) {
+      console.log('load')
+      axios.post("ws/form", {val}).then((response)  =>  {
+        this.options = response.data
+        this.sdsForm.type = this.options.result.type
+        this.sdsForm.network = this.options.result.net
+        this.sdsForm.loc = this.options.result.loc
+        this.sdsForm.comp = ['Z']
+        this.loadedOption = val.y_date
+      }, (error)  =>  {
+        console.log('error');
+                      })
+    },
+    getData (val) {
+      this.sdsForm = val
       this.activeTable = true
       this.activeIndex = '2'
       this.dataTable.loading = true;
-      axios.get("ws/get_data?sds=ecuador&start=100,2016&end=210,2016")
+      axios.post("ws/get_data", this.sdsForm)
       .then((response)  =>  {
         this.dataTable.data = response.data;
         this.dataTable.loading = false;
+        // this.initColorProgress()
         // this.$emit('input', this.data)
       }, (error)  =>  {
         this.dataTable.loading = false
@@ -190,6 +223,29 @@ export default {
         d2 = d2.getTime() / 86400000;
         return parseFloat(new Number(d2 - d1).toFixed(6));
     },
+    initColorProgress () {
+      for (let [key, field] of this.dataTable.data.result.entries() ){
+        // let field = this.dataTable.data.result[f]
+        console.log(field.avg)
+        if (field.avg >= 99.99) {
+          this.dataTable.data.result[key].coloravg = this.settings['tableColor.p100'].value
+        } else if (field.avg < 99.99 && field.avg >= 99) {
+          this.dataTable.data.result[key].coloravg = this.settings['tableColor.p99_100'].value
+        } else if (field.avg < 99 && field.avg >= 90) {
+          this.dataTable.data.result[key].coloravg = this.settings['tableColor.p90_99'].value
+        } else if (field.avg < 90 && field.avg >= 75) {
+          this.dataTable.data.result[key].coloravg = this.settings['tableColor.p75_90'].value
+        } else if (field.avg < 75 && field.avg >= 50) {
+          this.dataTable.data.result[key].coloravg = this.settings['tableColor.p50_75'].value
+        } else if (field.avg < 50 && field.avg >= 25) {
+          this.dataTable.data.result[key].coloravg = this.settings['tableColor.p25_50'].value
+        } else if (field.avg < 25 && field.avg > 0) {
+          this.dataTable.data.result[key].coloravg = this.settings['tableColor.p0_25'].value
+        } else {
+          this.dataTable.data.result[key].coloravg = this.settings['tableColor.no_data'].value
+        }
+      }
+    },
     loadInfos: function (val) {
       this.detail = val
       axios.post('/ws/day', this.detail).then((response)  =>  {
@@ -230,6 +286,7 @@ export default {
     loadStation: function (val) {
       this.showStationGraph = true
       this.station.sta_info = val
+      this.station.sta_info.y_date = this.sdsForm.y_date
       this.loading = true
       axios.post('/ws/station', this.station.sta_info).then((response)  =>  {
         this.station.data = response.data;
