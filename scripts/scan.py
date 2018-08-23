@@ -29,7 +29,7 @@ def scan_file(file_data, resultdir):
                                                                  file_data[1]),
                                                     os.path.join(resultdir,
                                                                  'tmp')))
-    if os.path.exists(os.path.join(resultdir, 'tmp.json'):
+    if os.path.exists(os.path.join(resultdir, 'tmp.json')):
         tmp_result = load_json(os.path.join(resultdir,
                                             'tmp.json'))
         os.remove(os.path.join(resultdir, 'tmp.json'))
@@ -80,19 +80,24 @@ def get_channel_filtered_station(stream):
 
 def scan_sds(sds_path, year, resultdir, global_dir):
     dict_m_date = load_json(os.path.join(global_dir, 'dict_m_date.json'))
+    print("Scan SDS ....")
     list_file_data = get_list_data(sds_path, year)
     for file_data in list_file_data:
         if test_mseed_file(file_data[1]):
-            if file_data[1] in dict_m_date.keys():
-                last_m = get_last_modification(os.path.join(file_data[0],
-                                                            file_data[1]))
-                if dict_m_date[file_data[1]] == last_m:
-                    print('already scan')
-                    continue
+            if get_channel_filtered_station(file_data[1].split('.')):
+                if file_data[1] in dict_m_date.keys():
+                    last_m = get_last_modification(os.path.join(file_data[0],
+                                                                file_data[1]))
+                    if dict_m_date[file_data[1]] == last_m:
+                        print('already scan')
+                        continue
+                    else:
+                        sds_info = scan(file_data, dict_m_date, resultdir, year, global_dir)
                 else:
                     sds_info = scan(file_data, dict_m_date, resultdir, year, global_dir)
             else:
-                sds_info = scan(file_data, dict_m_date, resultdir, year, global_dir)
+                print("%s filtered, not in white list" % file_data[1])
+                continue
         else:
             print("%s is not mseed file" % file_data[1])
             continue
