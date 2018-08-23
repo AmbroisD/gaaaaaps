@@ -243,7 +243,7 @@ def get_list_for_form(detail):
     y_d = datetime.strptime(detail['y_date'][:19],
                                '%Y-%m-%dT%H:%M:%S') + timedelta(hours=2)
     year = y_d.year
-    dir = os.path.join(config.DIR_DATA, config.PROJET, '%s' % year)
+    dir = os.path.join(config.DIR_DATA, '%s' % year)
     if not os.path.isdir(dir):
         return {'no_data': [True, year]}
     list_json = os.listdir(dir)
