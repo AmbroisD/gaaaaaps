@@ -4,16 +4,19 @@
 PATH_DATA_FILE = "%s/%s/%s/global_json/sds_global.json"  # dir, projet, year, year
 PATH_INFO_FILE = "%s/%s/%s" # dir, projet, year
 # /hawat1/checksds/alparray/2016/2016-sds.json
-SDS_DIR = "/u/lipsi/corinthe/crl/BUD.new"
+SDS_DIR = "/u/pic/sismo-rtdata/archive"
 
-YEAR_AVAILABLE = ["2016", "2017"]
+YEAR_AVAILABLE = ["2018"]
 
-DIR_DATA = "/home/sysop/david/gaaaaaps/scripts/corinthe"
+DIR_DATA = "/home/xm/.alparray"
 
-PROJET = 'corinthe'
+PROJET = 'alparray'
 
-STATION_WHITE_LIST = {"enable": False,
-                      "station" :["AGOS", "LOJ1", "APED", "EC12", "AAT1", "ARIO", "BOSC", "EC06"]}
+STATION_WHITE_LIST = {"enable": True,
+                      "station" :["A196A", "A194A", "A199A", "A200A", "A201A",
+                                  "A202A", "A204A", "A205A", "A206A", "A208A",
+                                  "A209A", "A216A", "A217A", "A209B","ENAUX",
+                                  "TRIGF", "MORSI", "FLAF", "CLAF"]}
 
 #FILTER = {
 #    "filter_criteria": {"enable": False,
