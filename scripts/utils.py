@@ -4,7 +4,7 @@ import os
 import json
 from datetime import datetime, timedelta
 from flask import Response
-from config import config
+import config
 #from config import PATH_DATA_FILE, PATH_INFO_FILE, DIR_DATA, SDS_AVAILABLE, PROJET
 
 def load_config(config_file):

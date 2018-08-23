@@ -4,7 +4,7 @@ import os
 import argparse
 from utils import load_json, save_json, get_last_modification
 from create_global_scan import global_scan
-from config import config
+import config
 
 def get_list_data(sds_path, year):
     """List all file in sds"""
@@ -29,20 +29,22 @@ def scan_file(file_data, resultdir):
                                                                  file_data[1]),
                                                     os.path.join(resultdir,
                                                                  'tmp')))
-    tmp_result = load_json(os.path.join(resultdir,
-                                        'tmp.json'))
-    tmp_result["Avg"] = int(float(tmp_result["Avg"]))
-    tmp_result["Stddev"] = int(float(tmp_result["Stddev"]))
-    tmp_result["Rms"] = int(float(tmp_result["Rms"]))
-    if os.path.exists(os.path.join(resultdir, '%s.json' % file_data[1].split('.D.')[0])):
-        station_dict = load_json(os.path.join(resultdir,
+    if os.path.exists(os.path.join(resultdir, 'tmp.json'):
+        tmp_result = load_json(os.path.join(resultdir,
+                                            'tmp.json'))
+        os.remove(os.path.join(resultdir, 'tmp.json'))
+        tmp_result["DataMetrics"]["Avg"] = int(float(tmp_result["DataMetrics"]["Avg"]))
+        tmp_result["DataMetrics"]["Stddev"] = int(float(tmp_result["DataMetrics"]["Stddev"]))
+        tmp_result["DataMetrics"]["Rms"] = int(float(tmp_result["DataMetrics"]["Rms"]))
+        if os.path.exists(os.path.join(resultdir, '%s.json' % file_data[1].split('.D.')[0])):
+            station_dict = load_json(os.path.join(resultdir,
                                               '%s.json' % file_data[1].split('.D.')[0]))
-        station_dict[file_data[1].split('.D.')[1]] = tmp_result
-    else:
-        station_dict = {}
-        station_dict[file_data[1].split('.D.')[1]] = tmp_result
-    save_json(station_dict, '%s.json' % os.path.join(resultdir,
-                                                     file_data[1].split('.D.')[0]))
+            station_dict[file_data[1].split('.D.')[1]] = tmp_result
+        else:
+            station_dict = {}
+            station_dict[file_data[1].split('.D.')[1]] = tmp_result
+        save_json(station_dict, '%s.json' % os.path.join(resultdir,
+                                                         file_data[1].split('.D.')[0]))
 
 
 def scan(file_data, dict_m_date, resultdir, year,  global_dir):
@@ -106,12 +108,9 @@ def main():
     """
     parser = argparse.ArgumentParser(description='To Scan SDS')
 
-    parser.add_argument('-S', "--sds", help='Set sds dir',
-                        required=True)
-    parser.add_argument('-d', "--resultdir", help='Set result dir',
-                        required=True)
-    parser.add_argument('-y', "--year", help='Set year',
-                        required=True)
+    parser.add_argument('-S', "--sds", help='Set sds dir')
+    parser.add_argument('-d', "--resultdir", help='Set result dir')
+    parser.add_argument('-y', "--year", help='Set year')
 #    parser.add_argument('-u', "--update", action="store_true",
 #                        help='to update the scan')
     parser.add_argument('-a', "--auto", action="store_true",
@@ -121,9 +120,9 @@ def main():
     if args.auto:
         for year in config.YEAR_AVAILABLE:
             resultdir = os.path.join(config.DIR_DATA, year)
+            global_dir = os.path.join(resultdir, 'global_json')
             if not os.path.exists(resultdir):
                 os.makedirs(resultdir)
-                global_dir = os.path.join(resultdir, 'global_json')
                 os.makedirs(global_dir)
                 dict_m_date = {}
                 save_json(dict_m_date, os.path.join(global_dir, 'dict_m_date.json'))

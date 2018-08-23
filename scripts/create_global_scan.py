@@ -61,8 +61,8 @@ def global_scan(resultdir, global_dir):
     list_json = os.listdir(resultdir)
     sds_info = {}
     for json_file in list_json:
-        if os.path.isfile(json_file):
-            info = get_resume_json(json_file)
+        if os.path.isfile(os.path.join(resultdir, json_file)):
+            info = get_resume_json(os.path.join(resultdir, json_file))
             sds_info[json_file[:-5]] = info
     save_json(sds_info, os.path.join(global_dir, 'sds_global.json'))
     #get_list_station_chan(DIR_SAVE)
