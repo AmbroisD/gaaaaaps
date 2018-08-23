@@ -257,7 +257,7 @@ def get_list_for_form(detail):
 
     for json_file in list_json:
 
-        if os.path.isfile(os.path.join(config.DIR_DATA, config.PROJET, '%s' % year, json_file)):
+        if os.path.isfile(os.path.join(config.DIR_DATA, '%s' % year, json_file)):
             info = json_file.split('.')
             if info[0] not in projet['net']:
                 projet['net'].append(info[0])
