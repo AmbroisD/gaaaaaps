@@ -7,7 +7,7 @@ from flask import Flask, request, render_template, Response, abort
 from scripts.utils import get_data, get_info, get_station, get_list_for_form
 from scripts.utils import error_response
 from scripts.utils import ok_response, ok_response_table
-from config import config
+from scripts import config 
 
 app = Flask(__name__)
 app.debug = True
