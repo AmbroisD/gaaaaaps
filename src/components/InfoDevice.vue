@@ -21,7 +21,8 @@
           <my-canvas id="data-canvas" :canvas-value="infos.canvas" style="width: 90%; height: 100px;"></my-canvas>
           <ul class="inline" >
             <li class="list" >Percent of data : {{ detail.percent }} %</li>
-            <li class="list" >Nb Gaps : {{ detail.gaps }}</li>
+            <li class="list" >Nb Gaps : {{ detail.gaps }} ({{ detail.total_gap }} s in total)</li>
+            <li class="list" >Nb Overlaps (s) : {{ detail.overlap }}</li>
           </ul>
         </div>
       </el-collapse-item>
@@ -58,7 +59,7 @@
         <div>
           <ul>
             <li
-            v-for="gap in infos.data.result.Gap.PeriodList"
+            v-for="gap in infos.data.result.Gap.PeriodList.slice(0, detail.gaps)"
             class="list" >Start : {{ gap['StartTime'] }} - End  : {{ gap['EndTime'] }}</li>
           </ul>
         </div>

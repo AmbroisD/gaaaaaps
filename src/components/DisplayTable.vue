@@ -98,7 +98,9 @@ import axios from 'axios'
             location: row.location,
             gaps: row[column.property].info.gaps,
             percent:row[column.property].info.percent,
-            day: [column.property, column.label]
+            day: [column.property, column.label],
+            total_gap:row[column.property].info.total_gap,
+            overlap:row[column.property].info.overlap
           })
           // this.$emit('detail', new_detail)
           this.$emit('dayActive', new_detail)
@@ -178,12 +180,6 @@ div.cell {
  /* border-collapse: collapse; */
 }
 
-td.cell-data {
-  border: 1px solid #333;
-  border-  width: 20px;
-  height: 20px;
-  /* border-collapse: collapse; */
-}
 
 td.cell-data:hover {
   box-shadow: inset 0 0 0 2px black;
@@ -223,6 +219,13 @@ td.cell-data.active {
   margin: 0 auto;
 }
 
+td.cell-data {
+  border: 1px solid #333;
+  position: relative;
+  /* border-width: 20px; */
+  height: 20px;
+  border-collapse: collapse;
+}
 
 
 </style>

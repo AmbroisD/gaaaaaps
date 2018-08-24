@@ -192,7 +192,7 @@ export default {
         let s = document.createElement('style');
         s.id = styleId;
         s.innerHTML = `
-        .pover { background-color: ${color.pover} !important;
+        .pover { background-color: ${color.pover} !important;         
                     }
         .no_data { background-color: ${color.no_data} !important;
                     }
