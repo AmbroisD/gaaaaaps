@@ -196,7 +196,7 @@ def get_html_color_tab(percent):
     elif percent > 0:
         color = 'p0_25'
         legend = '0% - 25%'
-    else :
+    else:
         color = 'no_data'
         legend = 'No data'
         print percent

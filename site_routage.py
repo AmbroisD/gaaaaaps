@@ -105,7 +105,7 @@ def get_form():
         return error_response('%s' % traceback.format_exc())
 
 
-@app.route('/comment', methods=['GET'])
+@app.route('/ws/comment', methods=['GET'])
 def set_comment():
     if ('sds' not in request.args or
             'year' not in request.args or

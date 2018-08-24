@@ -273,7 +273,7 @@ export default {
     },
     loadInfos: function (val) {
       this.detail = val
-      axios.post('/ws/day', this.detail).then((response)  =>  {
+      axios.post('ws/day', this.detail).then((response)  =>  {
         this.infos.data = response.data;
         if (this.infos.data.status == 'error') {
           this.$notify.info('No Data Available')
@@ -313,7 +313,7 @@ export default {
       this.station.sta_info = val
       this.station.sta_info.y_date = this.sdsForm.y_date
       this.loading = true
-      axios.post('/ws/station', this.station.sta_info).then((response)  =>  {
+      axios.post('ws/station', this.station.sta_info).then((response)  =>  {
         this.station.data = response.data;
         if (this.station.data.status == 'error') {
           this.$notify.error(this.station.data.message)
