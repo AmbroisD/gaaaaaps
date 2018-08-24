@@ -7,7 +7,7 @@ from flask import Flask, request, render_template, Response, abort
 from scripts.utils import get_data, get_info, get_station, get_list_for_form
 from scripts.utils import error_response
 from scripts.utils import ok_response, ok_response_table
-from scripts import config 
+from scripts import config
 
 app = Flask(__name__)
 app.debug = True
@@ -82,6 +82,14 @@ def get_statistics_station():
         detail = json.loads(s_detail)
         info = get_station(detail, config.PROJET)
         return ok_response(info)
+    except Exception as exception:
+        return error_response('%s' % traceback.format_exc())
+
+
+@app.route('/ws/year', methods=['POST'])
+def get_year():
+    try:
+        return ok_response(config.YEAR_AVAILABLE)
     except Exception as exception:
         return error_response('%s' % traceback.format_exc())
 

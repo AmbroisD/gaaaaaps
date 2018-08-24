@@ -86,7 +86,6 @@ def get_comment(channel, day, year):
 def get_info(detail, sds):
     """8G.EC04..VM2.json """
     json_file = os.path.join(config.PATH_INFO_FILE % (config.DIR_DATA,
-                                                      sds,
                                                       detail['day'][1][-4:]),
                              "%s.%s.%s.%s.json" % (detail["network"],
                                                    detail["station"],
@@ -102,7 +101,6 @@ def get_station(detail, sds):
                                '%Y-%m-%dT%H:%M:%S') + timedelta(hours=2)
     year = y_date.year
     json_file = os.path.join(config.PATH_INFO_FILE % (config.DIR_DATA,
-                                                      sds,
                                                       year),
                              "%s.%s.%s.%s.json" % (detail["network"],
                                                    detail["station"],
@@ -121,7 +119,7 @@ def get_data(form):
         for current_x in range(form['s_date'], form['e_date']):
             days.append('%s.%03d' % (year, current_x))
 
-    sds_info = get_sds_info(config.PROJET, year)
+    sds_info = get_sds_info(year)
     list_cha = sds_info.keys()
     keys = days
     data = [] # init result
@@ -205,11 +203,11 @@ def get_html_color_tab(percent):
     return color
 
 
-def get_sds_info(sds, year):
+def get_sds_info(year):
     """
     return json object
     """
-    return load_json(config.PATH_DATA_FILE % (config.DIR_DATA, sds, year))
+    return load_json(config.PATH_DATA_FILE % (config.DIR_DATA, year))
 
 
 def sds_filter(stations, sds_info_data, sta, net):

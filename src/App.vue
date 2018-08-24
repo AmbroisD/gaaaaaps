@@ -18,6 +18,7 @@
             <device-form
               v-model="sdsForm"
               :options="options"
+              :validDate="validDate"
               :loadedOption="loadedOption"
               v-on:submitForm="getData"
               v-on:updateDate="loadOption"
@@ -86,6 +87,7 @@ export default {
     return {
       settings: {},
       options:{},
+      validDate: [],
       loadedOption: null,
       loading: false,
       showStationGraph: false,
@@ -120,6 +122,7 @@ export default {
   mounted () {
   this.loadSettings()
   this.initStyle()
+  this.getYearAvail()
   // this.loadOption()
   },
   methods: {
@@ -134,6 +137,15 @@ export default {
         this.loadedOption = val.y_date
         this.options.sta = []
         this.generateTransferList()
+      }, (error)  =>  {
+        console.log('error');
+                      })
+    },
+    getYearAvail() {
+      console.log('year')
+      axios.post("ws/year", {}).then((response)  =>  {
+        this.validDate = response.data.result
+        console.log('year')
       }, (error)  =>  {
         console.log('error');
                       })
@@ -251,7 +263,7 @@ export default {
     },
     generateTransferList(){
       let sta = this.options.result.station
-      for (let i = 1; i <= sta.length; i++) {
+      for (let i = 1; i <= sta.length - 1; i++) {
         this.options.sta.push({
           key: i,
           label: sta[i],

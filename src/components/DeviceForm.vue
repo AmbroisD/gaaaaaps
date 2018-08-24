@@ -42,7 +42,9 @@
             prop="y_date">
             <el-date-picker
               type="year"
+              :picker-options="datePickerOptions"
               placeholder="Pick a year"
+              :default-time="'03:00:00'"
               v-model="value.y_date">
             </el-date-picker>
           </el-form-item>
@@ -205,6 +207,9 @@
       return {
         active: 0,
         load: null,
+        datePickerOptions: {
+          disabledDate: this.disabledDateY
+        },
         pickerOptions2: {
           shortcuts: [{
             text: 'Last week',
@@ -262,7 +267,7 @@
             }
           };
         },
-        props: ['value', 'options', 'loadedOption'],
+        props: ['value', 'options', 'loadedOption','validDate'],
         mounted () {
           this.load = this.loadedOption
         },
@@ -288,6 +293,13 @@
           },
           selectAll(val, val2) {
             this.value[val2] = this.options.result[val]
+          },
+          disabledDateY (date) {
+            if (this.validDate.indexOf(String(date.getFullYear())) >= 0) {
+              return false
+            } else {
+              return true
+            }
           },
           updateDate(formName) {
             if (this.value.y_date == this.load) {
