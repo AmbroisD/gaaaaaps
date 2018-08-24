@@ -31,6 +31,8 @@ export default {
       let width = this.canvas.width - 2 * this.padding
       this.context.save()
       this.context.rect(this.getXPos(0), .5, width, 60)
+      this.context.fillStyle = '#6ec47e'
+      this.context.fillRect(this.getXPos(0), .5, width, 60)
       this.context.clip()
 
       for (let rect of this.canvasValue) {

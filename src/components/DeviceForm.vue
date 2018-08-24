@@ -162,7 +162,8 @@
           <el-button class="buttonform" size="mini" round type="text" @click.prevent="deselectAll('loc')">Deselect all</el-button>
         </el-checkbox-group>
       </el-form-item>
-      <el-form-item>
+      <el-form-item
+        v-if="false">
         <h3>Select station by station</h3>
         <el-transfer
           style="text-align: left; display: inline-block"
