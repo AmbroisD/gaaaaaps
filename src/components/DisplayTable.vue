@@ -6,6 +6,7 @@
       :pagination-props="{ pageSizes: [15, 20, 30, 50] }"
       :table-props="{ cellClassName: handleCellClassName }"
       @cell-click="activeCell"
+      @cell-mouse-enter="displayInfo"
       :data="value.data.result"
       style="width: 90%"
       height="500">
@@ -40,6 +41,17 @@
         <template slot-scope="scope"></template>
       </el-table-column>
     </data-tables>
+    <div
+      class="center"
+      v-if="infoDay != null">
+      <ul class="inline" >
+        <li class="list" >Date : {{ infoDay.day }}</li>
+        <li class="list" >Network : {{ infoDay.network }}</li>
+        <li class="list" >Station : {{ infoDay.station }}</li>
+        <li class="list" >Channel : {{ infoDay.cha }}</li>
+        <li class="list" >Percent : {{ infoDay.percent }}</li>
+      </ul>
+    </div>
   </div>
 </template>
 
@@ -48,6 +60,7 @@ import axios from 'axios'
   export default {
     data () {
       return {
+        infoDay: null
    };
  },
     props: ['value', 'settings','infos','detail', 'station'],
@@ -84,6 +97,21 @@ import axios from 'axios'
           }
         }
         return result.join(' ')
+      },
+      displayInfo (row, column, cell, event) {
+        if (['station', 'network', 'cha'].indexOf(column.property) < 0) {
+          console.log(['station', 'network', 'cha'].indexOf(column.property))
+          this.infos.visible = false
+
+          this.infoDay = {
+            active: true,
+            station:row.station,
+            network: row.network,
+            cha: row.cha,
+            percent:row[column.property].info.percent,
+            day: column.label
+          }
+        }
       },
       activeCell (row, column, cell, event) {
         if (['station', 'network', 'cha'].indexOf(column.property) < 0) {
@@ -226,6 +254,19 @@ td.cell-data {
   height: 20px;
   border-collapse: collapse;
 }
+.inline li{
+font-size: medium;
+display:inline;
+padding : 0 1em; }
 
+.inline li.list:before {
+  content: '\ffed';
+  margin-right: 0.5em;
 
+}
+.center{
+  text-align: center;
+  line-height: 0px;
+  font-size: 20px;
+}
 </style>

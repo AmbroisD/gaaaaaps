@@ -22,7 +22,7 @@
           <ul class="inline" >
             <li class="list" >Percent of data : {{ detail.percent }} %</li>
             <li class="list" >Nb Gaps : {{ detail.gaps }} ({{ detail.total_gap }} s in total)</li>
-            <li class="list" >Nb Overlaps (s) : {{ detail.overlap }}</li>
+            <li class="list" >Nb Overlaps : {{ detail.overlap }}</li>
           </ul>
         </div>
       </el-collapse-item>
