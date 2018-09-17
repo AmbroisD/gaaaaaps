@@ -18,7 +18,7 @@
       </el-collapse-item>
       <el-collapse-item title="Data availability" name="2">
         <div>
-          <my-canvas id="data-canvas" :canvas-value="infos.canvas" style="width: 90%; height: 100px;"></my-canvas>
+          <day-plot id="data-canvas" :value="infos.gapList" style="width: 90%; height: 100px;"></day-plot>
           <ul class="inline" >
             <li class="list" >Percent of data : {{ detail.percent }} %</li>
             <li class="list" >Nb Gaps : {{ detail.gaps }} ({{ detail.total_gap }} s in total)</li>

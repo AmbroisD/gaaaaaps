@@ -26,7 +26,7 @@ import DeviceHeader from './components/DeviceHeader.vue'
 import DeviceAside from './components/DeviceAside.vue'
 import DeviceSetting from './components/DeviceSettings.vue'
 import DisplayLegend from './components/DisplayLegend.vue'
-import MyCanvas from './components/MyCanvas.vue'
+import DayPlot from './components/DayPlot.vue'
 import InfoDevice from './components/InfoDevice.vue'
 import DisplayAverage from './components/DisplayAverage.vue'
 
@@ -37,7 +37,7 @@ Vue.component('device-header', DeviceHeader)
 Vue.component('display-legend', DisplayLegend)
 Vue.component('device-form', DeviceForm)
 Vue.component('device-settings', DeviceSetting)
-Vue.component('my-canvas', MyCanvas)
+Vue.component('day-plot', DayPlot)
 Vue.component('info-device', InfoDevice)
 Vue.component('display-graph', DisplayGraph)
 Vue.component('display-average', DisplayAverage)

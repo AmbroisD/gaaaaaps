@@ -9,6 +9,7 @@
     active-text-color="#ffd04b">
     <el-menu-item index="gaps">Gaaaaaps</el-menu-item>
     <el-menu-item index="home">Home</el-menu-item>
+    <el-menu-item index="sign" class="pull-right"><i class="el-icon-view"></i>Sign in</el-menu-item>
     <el-menu-item index="userSettings" class="pull-right"><i class="el-icon-setting"></i></el-menu-item>
   </el-menu>
 </template>

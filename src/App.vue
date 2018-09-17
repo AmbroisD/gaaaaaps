@@ -33,6 +33,7 @@
               v-if="activeIndex == '2'">
             </display-legend>
             <display-table
+              :mode="mode"
               :detail="detail"
               :infos="infos"
               :settings="settings"
@@ -85,6 +86,7 @@ const STORAGE_KEY = 'settings'
 export default {
   data() {
     return {
+      mode:'public',
       settings: {},
       options:{},
       validDate: [],
@@ -110,9 +112,11 @@ export default {
                 julian_day: true,
                 visible: false
               },
-      infos: {visible: false,
-                       data:{},
-                       canvas:[]},
+      infos: {
+        visible: false,
+        data: {},
+        gapList: []
+      },
       detail: {active: false},
       station: {visible: false,
                 data:{},
@@ -123,7 +127,6 @@ export default {
   this.loadSettings()
   this.initStyle()
   this.getYearAvail()
-  // this.loadOption()
   },
   methods: {
     loadOption(val) {
@@ -159,8 +162,6 @@ export default {
       .then((response)  =>  {
         this.dataTable.data = response.data;
         this.dataTable.loading = false;
-        // this.initColorProgress()
-        // this.$emit('input', this.data)
       }, (error)  =>  {
         this.dataTable.loading = false
         console.log('error');
@@ -192,7 +193,7 @@ export default {
         let s = document.createElement('style');
         s.id = styleId;
         s.innerHTML = `
-        .pover { background-color: ${color.pover} !important;         
+        .pover { background-color: ${color.pover} !important;
                     }
         .no_data { background-color: ${color.no_data} !important;
                     }
@@ -224,7 +225,6 @@ export default {
           default: defaultValue,
           value: storedValue != null ? storedValue : defaultValue
         })
-        // color[key.split('.')[0]]: storedValue != null ? storedValue : defaultValue
       }
     },
     julianToDatetime(julian_day, year) {
@@ -232,11 +232,6 @@ export default {
         d.setTime(Date.UTC(year, 0 , 1, 0, 0, 0, 0))
         d.setUTCDate(julian_day)
         return d
-    },
-    dayDiff(d1, d2) {
-        d1 = d1.getTime() / 86400000;
-        d2 = d2.getTime() / 86400000;
-        return parseFloat(new Number(d2 - d1).toFixed(6));
     },
     initColorProgress () {
       for (let [key, field] of this.dataTable.data.result.entries() ){
@@ -278,27 +273,7 @@ export default {
         if (this.infos.data.status == 'error') {
           this.$notify.info('No Data Available')
         } else {
-
-          let iter = 0
-          let new_canvas = []
-          // if (this.infos.data.result['Gap'] != undefined ) {
-          for (let d of Object.entries(this.infos.data.result.Gap.PeriodList)) {
-            if (iter != 0) {
-              // console.log(this.dayDiff(last_end, new Date(d['1']['StartTime'])))
-              new_canvas.push([this.dayDiff(first_date, last_end), this.dayDiff(first_date, new Date(d['1']['StartTime'])),'#6ec47e'])
-            }
-            // console.log(this.dayDiff(new Date(d['1']['StartTime']),new Date(d['1']['EndTime'])))
-            if (iter == 0) {
-              new_canvas.push([0, this.dayDiff(new Date(d['1']['StartTime']), new Date(d['1']['EndTime'])), '#ff0000'])
-              var first_date = new Date(d['1']['StartTime'])
-            }
-            else {
-              new_canvas.push([this.dayDiff(first_date, new Date(d['1']['StartTime'])), this.dayDiff(first_date, new Date(d['1']['EndTime'])), '#ff0000'])
-            }
-            iter++
-            var last_end = new Date(d['1']['EndTime'])
-          }
-          this.infos.canvas = new_canvas
+          this.infos.gapList = response.data.result.Gap.PeriodList.map(x => Object.assign(x, { color: '#ff0000' }))
           this.detail.active = true
           this.infos.visible = true
         }
