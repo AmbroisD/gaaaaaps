@@ -168,8 +168,8 @@ class SDSScanner(object):
             file_analyse["Gap"]["PeriodList"] = file_analyse["Gap"]["PeriodList"][1:]
         elif first_gap_start < begin_day:
             file_analyse["Gap"]["PeriodList"][0] = {
-                "StartTime": begin_day.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-                "EndTime": first_gap_end.strftime("%Y-%m-%dT%H:%M:%S.%f")
+                "StartTime": begin_day.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+                "EndTime": first_gap_end.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             }
         if last_gap_start > end_day:
             delta = (last_gap_start - end_day)
@@ -177,8 +177,8 @@ class SDSScanner(object):
             file_analyse["Gap"]["PeriodList"] = file_analyse["Gap"]["PeriodList"][:-1]
         elif last_gap_end > end_day:
             file_analyse["Gap"]["PeriodList"][-1] = {
-                "StartTime": last_gap_start.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-                "EndTime": end_day.strftime("%Y-%m-%dT%H:%M:%S.%f")
+                "StartTime": last_gap_start.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+                "EndTime": end_day.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             }
 
     def __analyse_file(self, filepath):
