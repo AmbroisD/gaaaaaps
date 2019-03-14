@@ -7,6 +7,12 @@ from datetime import datetime
 from datetime import timedelta
 
 
+def parse_time(str_time):
+    if len(str_time) == 20:
+        return datetime.strptime(str_time[:19], '%Y-%m-%dT%H:%M:%S')
+    return datetime.strptime(str_time[:26], '%Y-%m-%dT%H:%M:%S.%f')
+
+
 def load_json(json_filename):
     """
     Load a JSON from a given filename
@@ -68,18 +74,20 @@ def is_sds_filename(filename):
 
 class SDSScanner(object):
 
-    def __init__(self, sds_root, result_root, white_list, verbose):
+    def __init__(self, sds_root, result_root, white_list, file_analyse, verbose):
         """
         Initialize this SDSScanner
 
-        sds_root    -- The SDS root directory
-        result_root -- The root directory of result
-        white_list  -- The station white list
-        verbose     -- Verbosity level
+        sds_root     -- The SDS root directory
+        result_root  -- The root directory of result
+        white_list   -- The station white list
+        file_analyse -- The absolute path of file_analyse
+        verbose      -- Verbosity level
         """
         self.__sds_root = sds_root
         self.__result_root = result_root
         self.__white_list = white_list
+        self.__file_analyse = file_analyse
         self.__verbose = verbose
 
     def __must_be_processed(self, station_code):
@@ -157,10 +165,10 @@ class SDSScanner(object):
         last_gap = file_analyse["Gap"]["PeriodList"][-1]
         begin_day = datetime.strptime("%s.%s" % (year, yday), '%Y.%j')
         end_day = datetime.strptime("%s.%s-23:59:59.999999" % (year, yday), '%Y.%j-%H:%M:%S.%f')
-        first_gap_start = datetime.strptime(first_gap["StartTime"][:26], '%Y-%m-%dT%H:%M:%S.%f')
-        first_gap_end = datetime.strptime(first_gap["EndTime"][:26], '%Y-%m-%dT%H:%M:%S.%f')
-        last_gap_start = datetime.strptime(last_gap["StartTime"][:26], '%Y-%m-%dT%H:%M:%S.%f')
-        last_gap_end = datetime.strptime(last_gap["EndTime"][:26], '%Y-%m-%dT%H:%M:%S.%f')
+        first_gap_start = parse_time(first_gap["StartTime"])
+        first_gap_end = parse_time(first_gap["EndTime"])
+        last_gap_start = parse_time(last_gap["StartTime"])
+        last_gap_end = parse_time(last_gap["EndTime"])
 
         if first_gap_end < begin_day:
             delta = (begin_day - first_gap_end)
@@ -193,8 +201,9 @@ class SDSScanner(object):
         year = filename.split('.')[-2]
         yday = filename.split('.')[-1]
         result_filename = os.path.join(self.__resultdir, 'tmp.json')
-        os.system('./file-analyse -i %s -d %d -y %s  -o %s' %
-                  (filepath, int(yday), year, result_filename))
+        os.system('%s -i %s -d %d -y %s  -o %s' %
+                  (self.__file_analyse, filepath, int(yday),
+                   year, result_filename))
 
         if not os.path.exists(result_filename):
             filename = os.path.basename(filepath)

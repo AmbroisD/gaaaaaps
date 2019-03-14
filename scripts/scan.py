@@ -33,11 +33,13 @@ def main():
     if args.auto:
         for year in config.available_year:
             scanner = SDSScanner(config["sds_dir"], config["data_dir"],
-                                 config["white_list"], args.verbose)
+                                 config["white_list"], args.program,
+                                 args.verbose)
             scanner.scan_sds(year)
     else:
         scanner = SDSScanner(config["sds_dir"], config["data_dir"],
-                             config["white_list"], args.verbose)
+                             config["white_list"], args.program,
+                             args.verbose)
         scanner.scan_sds(args.year)
 
 
