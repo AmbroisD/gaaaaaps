@@ -109,7 +109,7 @@ func main() {
 	configFilepath := flag.String("c", "config.json", "MSeed input file")
 	nbWorkers := flag.Int("w", 1, "Set number of workers used to scan SDS")
 	//debugFlag := flag.Bool("d", false, "Set debug flag")
-	minimalGap := flag.Float64("g", 3/2, "Set the minimal gap size if term of inter sample duration")
+	minimalGap := flag.Float64("g", 3.0/2, "Set the minimal gap size if term of inter sample duration")
 	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to `file`")
 	verboseFlag := flag.Bool("v", false, "Set verbose flag")
 	flag.Parse()
