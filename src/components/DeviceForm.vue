@@ -44,7 +44,7 @@
               type="year"
               :picker-options="datePickerOptions"
               placeholder="Pick a year"
-              :default-time="'03:00:00'"
+              :default-time="'05:00:00'"
               v-model="value.y_date">
             </el-date-picker>
           </el-form-item>
@@ -75,7 +75,6 @@
         </div>
         <el-form-item>
           <el-switch
-            disabled
             prop="julian_day"
             v-model="value.julian_day"
             active-text="julian day"

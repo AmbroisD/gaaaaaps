@@ -1,14 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import os
-import traceback
 import json
-from flask import Flask, request, render_template, Response, abort
-from scripts.utils import get_data, get_info, get_station, get_list_for_form
-from scripts.utils import error_response
-from scripts.utils import ok_response, ok_response_table
-from scripts import config
-
+import traceback
+from gaaaaaps.utils import error_response
+from gaaaaaps.config import get_www_config
+from flask import Flask, request, render_template, abort
+from gaaaaaps.utils import ok_response, ok_response_table
+from gaaaaaps.utils import get_data, get_info, get_station, get_list_for_form
 app = Flask(__name__)
 app.debug = True
 
@@ -26,7 +24,7 @@ def get_table():
         data, keys = get_data(form)
 
         return ok_response_table(data=data, keys=keys)
-    except Exception as exception:
+    except Exception:
         return error_response('%s' % traceback.format_exc())
 
 
@@ -52,7 +50,7 @@ def get_table_data():
                                                  "locations": loc})
 
             return ok_response_table(data=data, keys=keys)
-        except Exception as exception:
+        except Exception:
             return error_response('%s' % traceback.format_exc())
     else:
         abort(400)
@@ -66,9 +64,9 @@ def get_info_station():
     try:
         s_detail = request.data
         detail = json.loads(s_detail)
-        info = get_info(detail, config.PROJET)
+        info = get_info(detail)
         return ok_response(info)
-    except Exception as exception:
+    except Exception:
         return error_response('%s' % traceback.format_exc())
 
 
@@ -80,17 +78,17 @@ def get_statistics_station():
     try:
         s_detail = request.data
         detail = json.loads(s_detail)
-        info = get_station(detail, config.PROJET)
+        info = get_station(detail)
         return ok_response(info)
-    except Exception as exception:
+    except Exception:
         return error_response('%s' % traceback.format_exc())
 
 
 @app.route('/ws/year', methods=['POST'])
 def get_year():
     try:
-        return ok_response(config.YEAR_AVAILABLE)
-    except Exception as exception:
+        return ok_response(get_www_config()["available_year"])
+    except Exception:
         return error_response('%s' % traceback.format_exc())
 
 
@@ -101,17 +99,17 @@ def get_form():
         detail = json.loads(s_detail)
         projet = get_list_for_form(detail['val'])
         return ok_response(projet)
-    except Exception as exception:
+    except Exception:
         return error_response('%s' % traceback.format_exc())
 
 
 @app.route('/ws/comment', methods=['GET'])
 def set_comment():
-    if ('sds' not in request.args or
-            'year' not in request.args or
-            'net' not in request.args or
-            'sta' not in request.args or
-            'day' not in request.args):
+    if('sds' not in request.args
+       or 'year' not in request.args
+       or 'net' not in request.args
+       or 'sta' not in request.args
+       or 'day' not in request.args):
         abort(400)
 
 
