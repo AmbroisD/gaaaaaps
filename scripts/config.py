@@ -1,22 +1,25 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-PATH_DATA_FILE = "%s/%s/%s/global_json/sds_global.json"  # dir, projet, year, year
-PATH_INFO_FILE = "%s/%s/%s" # dir, projet, year
+PATH_DATA_FILE = "%s/%s/global_json/sds_global.json"  # dir, projet, year, year
+PATH_INFO_FILE = "%s/%s" # dir, projet, year
 # /hawat1/checksds/alparray/2016/2016-sds.json
 SDS_DIR = "/u/pic/sismo-rtdata/archive"
 
-YEAR_AVAILABLE = ["2018"]
+YEAR_AVAILABLE = ["2016"]
 
-DIR_DATA = "/home/xm/.alparray"
+DIR_DATA = "/u/moana/user/ambrois/utopia/sds/ecuador"
 
-PROJET = 'alparray'
+PROJET = 'ecuador'
 
-STATION_WHITE_LIST = {"enable": True,
+STATION_WHITE_LIST = {"enable": False,
                       "station" :["A196A", "A194A", "A199A", "A200A", "A201A",
                                   "A202A", "A204A", "A205A", "A206A", "A208A",
                                   "A209A", "A216A", "A217A", "A209B","ENAUX",
                                   "TRIGF", "MORSI", "FLAF", "CLAF"]}
+
+
+MODE = 'admin'
 
 #FILTER = {
 #    "filter_criteria": {"enable": False,
