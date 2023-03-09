@@ -201,6 +201,9 @@ class SDSScanner(object):
         year = filename.split('.')[-2]
         yday = filename.split('.')[-1]
         result_filename = os.path.join(self.__resultdir, 'tmp.json')
+        print('%s -i %s -d %d -y %s  -o %s' %
+                  (self.__file_analyse, filepath, int(yday),
+                   year, result_filename))
         os.system('%s -i %s -d %d -y %s  -o %s' %
                   (self.__file_analyse, filepath, int(yday),
                    year, result_filename))
@@ -213,9 +216,10 @@ class SDSScanner(object):
 
         result = load_json(result_filename)
         os.remove(result_filename)
-        result["DataMetrics"]["Avg"] = int(float(result["DataMetrics"]["Avg"]))
-        result["DataMetrics"]["Stddev"] = int(float(result["DataMetrics"]["Stddev"]))
-        result["DataMetrics"]["Rms"] = int(float(result["DataMetrics"]["Rms"]))
+        print(result)
+        result["DataMetrics"][0]["avg"] = int(float(result["DataMetrics"][0]["avg"]))
+        result["DataMetrics"][0]["stddev"] = int(float(result["DataMetrics"][0]["stddev"]))
+        result["DataMetrics"][0]["rms"] = int(float(result["DataMetrics"][0]["rms"]))
         return result
 
     def __scan_one_file(self, filepath):
