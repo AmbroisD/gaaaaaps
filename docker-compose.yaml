@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  gaps:
+    image: oca/gaps
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - /Users/ambrois/Documents/01_Scripts/data/SQS2:/SQS
+      - /Users/ambrois/Documents/01_Scripts/data/SDS_TEST:/SDS
+    init: true
+    container_name: gaps
