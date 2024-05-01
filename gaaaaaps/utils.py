@@ -168,7 +168,6 @@ def get_list_for_form(detail):
                             '%Y-%m-%dT%H:%M:%S') + timedelta(hours=2)
     year = y_d.year
     dir = os.path.join(load_config()["data_dir"], '%s' % year)
-    print(dir)
     if not os.path.isdir(dir):
         return {'no_data': [True, year]}
     list_json = os.listdir(dir)
@@ -184,7 +183,6 @@ def get_list_for_form(detail):
     for json_file in list_json:
         if os.path.isfile(os.path.join(load_config()["data_dir"], '%s' % year, json_file)):
             info = json_file.split('.')
-            print(info)
             if len(info) != 5:
                 continue
             if info[0] not in projet['net']:
