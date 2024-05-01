@@ -2,8 +2,7 @@
 # -*- coding:utf-8 -*-
 import os
 import json
-from flask import Response
-from config import get_www_config
+from config import load_config
 from datetime import datetime, timedelta
 
 
@@ -12,10 +11,7 @@ def error_response(message):
         'status': 'error',
         'message': '%s' % message
     }
-    return Response(json.dumps(response,
-                               separators=(',', ':'),
-                               indent=2),
-                    mimetype='application/json')
+    return response
 
 
 def ok_response(result=None):
@@ -24,9 +20,7 @@ def ok_response(result=None):
     }
     if result is not None:
         response['result'] = result
-    return Response(json.dumps(response,
-                               separators=(',', ':')),
-                    mimetype='application/json')
+    return response
 
 
 def ok_response_table(data=None, keys=None):
@@ -36,9 +30,7 @@ def ok_response_table(data=None, keys=None):
     if data is not None:
         response['result'] = data
         response['keys'] = keys
-    return Response(json.dumps(response,
-                               separators=(',', ':')),
-                    mimetype='application/json')
+    return response
 
 
 def get_comment(channel, day, year):
@@ -47,7 +39,7 @@ def get_comment(channel, day, year):
 
 def get_info(detail):
     """8G.EC04..VM2.json """
-    json_file = os.path.join(get_www_config()["data_dir"], detail['day'][1][-4:],
+    json_file = os.path.join(load_config()["data_dir"], detail['day'][1][-4:],
                              "%s.%s.%s.%s.json" % (detail["network"],
                                                    detail["station"],
                                                    detail["location"],
@@ -61,7 +53,7 @@ def get_station(detail):
     y_date = datetime.strptime(detail['y_date'][:19],
                                '%Y-%m-%dT%H:%M:%S') + timedelta(hours=2)
     year = y_date.year
-    json_file = os.path.join(get_www_config()["data_dir"], str(year),
+    json_file = os.path.join(load_config()["data_dir"], str(year),
                              "%s.%s.%s.%s.json" % (detail["network"],
                                                    detail["station"],
                                                    detail["location"],
@@ -167,7 +159,7 @@ def get_sds_info(year):
     """
     return json object
     """
-    data_file = os.path.join(get_www_config()["data_dir"], "%s" % year, "global_json/sds_global.json")
+    data_file = os.path.join(load_config()["data_dir"], "%s" % year, "global_json/sds_global.json")
     return json.load(open(data_file, 'r'))
 
 
@@ -175,7 +167,8 @@ def get_list_for_form(detail):
     y_d = datetime.strptime(detail['y_date'][:19],
                             '%Y-%m-%dT%H:%M:%S') + timedelta(hours=2)
     year = y_d.year
-    dir = os.path.join(get_www_config()["data_dir"], '%s' % year)
+    dir = os.path.join(load_config()["data_dir"], '%s' % year)
+    print(dir)
     if not os.path.isdir(dir):
         return {'no_data': [True, year]}
     list_json = os.listdir(dir)
@@ -189,8 +182,11 @@ def get_list_for_form(detail):
     }
 
     for json_file in list_json:
-        if os.path.isfile(os.path.join(get_www_config()["data_dir"], '%s' % year, json_file)):
+        if os.path.isfile(os.path.join(load_config()["data_dir"], '%s' % year, json_file)):
             info = json_file.split('.')
+            print(info)
+            if len(info) != 5:
+                continue
             if info[0] not in projet['net']:
                 projet['net'].append(info[0])
             if info[1] not in projet['station']:

@@ -25,13 +25,14 @@ def main():
     args = parser.parse_args()
 
     config = load_config(args.config)
+    print(config)
 
     if not args.auto and args.year is None:
         sys.stderr.write("You must specify -a or -y")
         sys.exit(1)
 
     if args.auto:
-        for year in config.available_year:
+        for year in config["available_year"]:
             scanner = SDSScanner(config["sds_dir"], config["data_dir"],
                                  config["white_list"], args.program,
                                  args.verbose)
