@@ -37,12 +37,17 @@ RUN apt-get update && apt-get install -y \
 COPY . /app
 COPY static /app/gaaaaaps/static
 COPY templates/app.html /app/gaaaaaps/app.html
-# Définition du répertoire de travail
+
+# Copie du fichier cronjob dans le répertoire cron.d
+COPY config/cronjob /etc/cron.d/cronjob
+RUN chmod 0644 /etc/cron.d/cronjob
+
+RUN chmod +x /app/config/start.sh
+
 WORKDIR /app/gaaaaaps
 
-# Expose port 80
 EXPOSE 8000
 
-# Command to start FastAPI using Uvicorn
-CMD ["python3", "-m", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
-#ENTRYPOINT ["tail", "-f", "/dev/null"]
+# Démarre le script de démarrage au démarrage du conteneur
+CMD ["/app/config/start.sh"]
+

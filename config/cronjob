@@ -1,0 +1,2 @@
+# Planifie l'exécution de scan.py tous les jours à minuit
+0 0 * * * root python3 /scripts/scan.py -c /scripts/config.json -p /Users/ambrois/Documents/01_Scripts/Externe_script/slinkgo/file-analyse/file-analyse

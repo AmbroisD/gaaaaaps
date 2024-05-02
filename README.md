@@ -1,5 +1,31 @@
 # Gaaaaaps
 
+# Docker Configuration
+
+To properly configure Docker for the Gaaaaaps application, you need to follow the steps below:
+
+## Modifying the docker-compose.yml File
+
+Edit the `docker-compose.yml` file to specify the paths of the `SDS` and `SQS` directories where you want to store the scan results. Here's an example of modification:
+
+
+volumes:
+  - /Users/ambrois/Documents/01_Scripts/data/SQS:/SQS
+  - /Users/ambrois/Documents/01_Scripts/data/SDS:/SDS
+  
+Make sure to replace /Users/ambrois/Documents/01_Scripts/data/SQS and /Users/ambrois/Documents/01_Scripts/data/SDS with the appropriate paths on your system.
+
+Modifying the gaps_config.json File
+Edit the gaps_config.json file to configure the available years and the whitelist of items. Here's an example of modification:
+
+{
+    "available_year": ["2021"],
+    "white_list": ["HBAR"]
+}
+
+Make sure to update the available years and the whitelist according to your requirements.
+
+
 > #### Get dAtA AvAilAbility for ProjectS 
 
 #### Install

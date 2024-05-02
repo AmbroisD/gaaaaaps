@@ -24,7 +24,7 @@ def main():
     parser.add_argument('-v', '--verbose', action='count', default=0)
     args = parser.parse_args()
 
-    config = load_config(args.config)
+    config = load_config()
     print(config)
 
     if not args.auto and args.year is None:
