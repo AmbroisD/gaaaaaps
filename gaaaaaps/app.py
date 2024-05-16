@@ -1,11 +1,13 @@
 import json
 import traceback
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Query
 from fastapi.responses import JSONResponse, HTMLResponse
+from starlette.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from utils import error_response, ok_response, \
                   ok_response_table, get_data, \
-                  get_info, get_station, get_list_for_form
+                  get_info, get_station, get_list_for_form, \
+                  generate_csv_response, get_avg
 from config import get_www_config
 
 app = FastAPI(debug=True)
@@ -80,3 +82,35 @@ async def get_form(request: Request):
 async def set_comment(sds: str, year: str, net: str, sta: str, day: str):
     if not all([sds, year, net, sta, day]):
         raise HTTPException(status_code=400, detail="Missing parameters")
+    
+
+@app.get("/ws/get_avg/")
+async def get_avg_api(year: str = Query(..., description="Year in string format ('YYYY')"),
+                      j_starttime: int = Query(..., description="Start time as Julian day"),
+                      j_endtime: int = Query(..., description="End time as Julian day"),
+                      format: str = Query('json', description="Output format: json or csv")):
+    """
+    API endpoint to calculate the average percentage for each channel between two given time periods.
+
+    Args:
+        year (str): Year in string format ('YYYY').
+        j_starttime (int): Start time as Julian day.
+        j_endtime (int): End time as Julian day.
+        format (str): Output format, either 'json' or 'csv'.
+
+    Returns:
+        JSON or CSV response based on the requested format.
+    """
+    try:
+        data, keys = get_avg(year, j_starttime, j_endtime)
+        
+        if format == 'csv':
+            csv_data = generate_csv_response(data)
+            return StreamingResponse(iter([csv_data]), media_type="text/csv",
+                                     headers={"Content-Disposition": f"attachment; filename=average_gap.csv"})
+            #response = generate_csv_response(data)
+            #return response
+        else:
+            return ok_response_table(data=data)
+    except Exception:
+        return error_response('%s' % traceback.format_exc())

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+import io
 import os
+import csv
 import json
 from config import load_config
 from datetime import datetime, timedelta
@@ -29,6 +31,7 @@ def ok_response_table(data=None, keys=None):
     }
     if data is not None:
         response['result'] = data
+    if keys is not None:
         response['keys'] = keys
     return response
 
@@ -62,14 +65,12 @@ def get_station(detail):
 
 
 def get_data(form):
-
-    if form['julian_day']:
-        y_date = datetime.strptime(form['y_date'][:19],
-                                   '%Y-%m-%dT%H:%M:%S') + timedelta(hours=2)
-        year = y_date.year
-        days = []
-        for current_x in range(form['s_date'], form['e_date']):
-            days.append('%s.%03d' % (year, current_x))
+    days = []
+    y_date = datetime.strptime(form['y_date'][:19],
+                               '%Y-%m-%dT%H:%M:%S') + timedelta(hours=2)
+    year = y_date.year
+    for current_x in range(form['s_date'], form['e_date']):
+        days.append('%s.%03d' % (year, current_x))
 
     sds_info = get_sds_info(year)
     list_cha = sds_info.keys()
@@ -107,6 +108,51 @@ def get_data(form):
 
             data.append(channel)
     return data, keys
+
+
+def get_avg(year, j_starttime, j_endtime):
+    """
+    Calculate the average percentage for each channel between two given time periods.
+
+    Args:
+        year (str): Year in string format ('YYYY').
+        j_starttime (int): Start time as Julian day.
+        j_endtime (int): End time as Julian day.
+
+    Returns:
+        tuple: A tuple containing two elements:
+            - List of dictionaries, where each dictionary represents a channel with the following keys:
+                - 'network' (str): Network code.
+                - 'station' (str): Station code.
+                - 'location' (str): Location code.
+                - 'cha' (str): Channel code.
+                - 'avg' (float): Average percentage for the channel during the specified time period.
+            - List of strings representing days in the format 'YYYY.JJJ', where JJJ is the day of the year.
+    """
+    days = []
+    for current_x in range(j_starttime, j_endtime):
+        days.append('%s.%03d' % (year, current_x))
+
+    sds_info = get_sds_info(year)
+    list_cha = sds_info.keys()
+    keys = days
+    data = []  # init result
+
+    for current_cha in list_cha:
+        net, sta, loc, cha = current_cha.split('.')
+        channel = {'network': net,
+                   'station': sta,
+                   'location': loc,
+                   'cha': cha}
+        avg = 0
+        for day in days:
+            if day in sds_info[current_cha].keys():
+                avg += (float(sds_info[current_cha][day]['percent']))
+
+        channel['avg'] = round(float(avg / len(days)), 2)
+        data.append(channel)
+    return data, keys
+
 
 
 def get_channel_filtered(channel, form):
@@ -196,3 +242,25 @@ def get_list_for_form(detail):
             if info[3][-1] not in projet['comp']:
                 projet['comp'].append(info[3][-1])
     return projet
+
+
+def generate_csv_response(data: list[dict]) -> str:
+    """
+    Generate CSV response from list of dictionaries.
+
+    Args:
+        data (List[dict]): List of dictionaries representing channel data.
+
+    Returns:
+        str: CSV formatted string.
+    """
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=data[0].keys())
+    writer.writeheader()
+    writer.writerows(data)
+    return output.getvalue()
+    #csv_data = []
+    #csv_data.append(','.join(data[0].keys()))  # Write header row
+    #for channel in data:
+    #    csv_data.append(','.join(map(str, channel.values())))
+    #return '\n'.join(csv_data)
