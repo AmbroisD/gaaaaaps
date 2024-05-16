@@ -151,7 +151,11 @@ func main() {
 		fmt.Printf("Can't initialize SDS manager: %s", err.Error())
 		os.Exit(1)
 	}
-	sdsScanner := scanner.NewSDSScanner(*sdsManager, *nbWorkers, *minimalGaps, *computeDist, *verboseFlag)
+	if *verboseFlag {
+		fmt.Printf("Creating SDS scanner\n")
+	}
+	sdsScanner := scanner.NewSDSScanner(*sdsManager, *nbWorkers, *minimalGap,
+		*verboseFlag)
 	var processedYear []int
 	for _, current := range config.AvailableYear {
 		intYear, err := strconv.Atoi(current)
@@ -162,14 +166,22 @@ func main() {
 		processedYear = append(processedYear, intYear)
 	}
 	for _, currentYear := range processedYear {
+		if *verboseFlag {
+			fmt.Printf("Initialize directory structure for %d\n", currentYear)
+		}
 		lastComputationTime, globalSds, erri := initData(config.DataDir, currentYear)
 		if erri != nil {
 			fmt.Printf("Error initializing directory structure for year %d: %s\n", currentYear, erri.Error())
 			continue
 		}
-		result, err := sdsScanner.ScanOneYear(currentYear, config.StreamSelection, lastComputationTime)
+		// Copy lastComputationTime for scanner
+		lastComputationTimeCopy := make(map[string]float64)
+		for k, v := range lastComputationTime {
+			lastComputationTimeCopy[k] = v
+		}
+		result, err := sdsScanner.ScanOneYear(currentYear, config.StreamSelection, lastComputationTimeCopy)
 		if err != nil {
-			fmt.Printf("Error during scan of year %d\n", currentYear)
+			fmt.Printf("Error during scan of year %d: %s\n", currentYear, err.Error())
 		}
 		yearDir := path.Join(config.DataDir, fmt.Sprintf("%d", currentYear))
 		resultProcessor := NewResultProcessor(yearDir, lastComputationTime, globalSds)

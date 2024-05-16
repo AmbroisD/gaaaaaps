@@ -15,13 +15,21 @@ type consolidatedStatistics struct {
 	Overlap  int     `json:"overlap"`
 }
 
+// ResultProcessor is used to save and consolidate result given by SDSScanner
 type ResultProcessor struct {
-	yearDir        string
-	lastProcess    map[string]float64
-	globalSds      map[string]map[string]consolidatedStatistics
+	// The data year directory
+	yearDir string
+	// The mapping between filename and last processing time
+	lastProcess map[string]float64
+	// The consolidated processing informations
+	// streamID -> "<year>.<jday>" -> <consolidated statistics>
+	globalSds map[string]map[string]consolidatedStatistics
+	// The full processing informations
+	// streamID -> "<year>.<jday>" -> statistics
 	fileStatistics map[string]map[string]*scanner.DayFileStatistics
 }
 
+// dumpToDisk dump all processed result to disk
 func (rp *ResultProcessor) dumpToDisk() {
 	lastProcessFilepath := path.Join(rp.yearDir, "global_json", "dict_m_date.json")
 	err := dumpJSON(rp.lastProcess, lastProcessFilepath)
@@ -43,6 +51,10 @@ func (rp *ResultProcessor) dumpToDisk() {
 }
 
 // NewResultProcessor initialize a new resultProcessor
+//
+// yearDir     -- The year data directoty
+// lastProcess -- The last processing time informations
+// globalSds   -- The consolidated informations mapping
 func NewResultProcessor(yearDir string, lastProcess map[string]float64,
 	globalSds map[string]map[string]consolidatedStatistics) ResultProcessor {
 	return ResultProcessor{yearDir: yearDir, lastProcess: lastProcess,
@@ -50,25 +62,35 @@ func NewResultProcessor(yearDir string, lastProcess map[string]float64,
 		fileStatistics: make(map[string]map[string]*scanner.DayFileStatistics)}
 }
 
-func (rp *ResultProcessor) saveFileStatistic(result scanner.ScanResult) {
+// saveFullStatistics save full statistics for a given ScanResult
+//
+// result -- The result to save
+func (rp *ResultProcessor) saveFullStatistics(result scanner.ScanResult) {
 	splitFilename := strings.Split(result.Filename, ".")
 	entry := strings.Join(splitFilename[0:4], ".")
 	if _, ok := rp.fileStatistics[entry]; !ok {
 		filePath := path.Join(rp.yearDir, entry+".json")
-		content := make(map[string]*scanner.DayFileStatistics)
-		loadJSON(filePath, content)
-		rp.fileStatistics[entry] = content
+		var content map[string]*scanner.DayFileStatistics
+		if loadJSON(filePath, content) != nil {
+			rp.fileStatistics[entry] = make(map[string]*scanner.DayFileStatistics)
+		} else {
+			rp.fileStatistics[entry] = content
+		}
 	}
-	rp.fileStatistics[entry][strings.Join(splitFilename[6:7], ".")] = result.Statistics
+	rp.fileStatistics[entry][strings.Join(splitFilename[5:7], ".")] = result.Statistics
 }
 
-func (rp *ResultProcessor) updateGlobalStatistic(result scanner.ScanResult) {
+// updateConsolidatedStatistics update consolidated statistics according to given
+// ScanResult
+//
+// result -- The result to consolidate
+func (rp *ResultProcessor) updateConsolidatedStatistics(result scanner.ScanResult) {
 	splitFilename := strings.Split(result.Filename, ".")
 	streamEntry := strings.Join(splitFilename[0:4], ".")
-	dayEntry := strings.Join(splitFilename[5:6], ".")
+	dayEntry := strings.Join(splitFilename[5:7], ".")
 	globalStat := consolidatedStatistics{TotalGap: int(result.Statistics.Gap.Duration() / 1e9),
 		NbGap:   result.Statistics.Gap.Len(),
-		Percent: float64(result.Statistics.Gap.Duration()) / 86400}
+		Percent: 100 * (86400 - float64(result.Statistics.Gap.Duration()/1e9)) / 86400}
 	if _, ok := rp.globalSds[streamEntry]; !ok {
 		rp.globalSds[streamEntry] = make(map[string]consolidatedStatistics)
 	}
@@ -85,8 +107,8 @@ func (rp *ResultProcessor) processResult(result chan scanner.ScanResult) {
 				return
 			}
 			rp.lastProcess[currentScanResult.Filename] = float64(currentScanResult.Statistics.GeneratedTime.UnixNano()) / 1e9
-			rp.saveFileStatistic(currentScanResult)
-			rp.updateGlobalStatistic(currentScanResult)
+			rp.saveFullStatistics(currentScanResult)
+			rp.updateConsolidatedStatistics(currentScanResult)
 		}
 	}
 }

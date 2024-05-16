@@ -71,7 +71,7 @@
   vertical-align: middle;
   border: 1px solid gray;
   margin-right: 10px;
-  width: 55px;
+  width: 40px;
   height: 20px;
 }
 
