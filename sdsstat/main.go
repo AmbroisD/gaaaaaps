@@ -2,20 +2,18 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
-	"io/ioutil"
-	"oca/sds"
-	"oca/sds/scanner"
 	"os"
 	"path"
 	"strconv"
+
+	"kleos.unice.fr/peix/argo/oca/argo"
+	"kleos.unice.fr/peix/gsds/oca/sds"
+	"kleos.unice.fr/peix/gsds/oca/sds/scanner"
 )
 
-//
 // ConsolidationFile define structure of sds_global.json
 // streamId -> <Y.JD> -> consolidated Statistics
-//
 type ConsolidationFile map[string]map[string]consolidatedStatistics
 
 // Associate each filename with last process time
@@ -42,7 +40,7 @@ func initData(dataDir string, year int) (lastProcess map[string]float64,
 	// Create year directory if need
 	yearDir := path.Join(dataDir, fmt.Sprintf("%d", year))
 	if _, e = os.Stat(yearDir); os.IsNotExist(e) {
-		err = os.Mkdir(yearDir, 755)
+		err = os.Mkdir(yearDir, 0755)
 		if err != nil {
 			return
 		}
@@ -51,7 +49,7 @@ func initData(dataDir string, year int) (lastProcess map[string]float64,
 	// Create year global result directory if need
 	globalDir := path.Join(yearDir, "global_json")
 	if _, e = os.Stat(globalDir); os.IsNotExist(e) {
-		err = os.Mkdir(globalDir, 755)
+		err = os.Mkdir(globalDir, 0755)
 		if err != nil {
 			return
 		}
@@ -100,22 +98,38 @@ func loadJSON(filepath string, result interface{}) error {
 func dumpJSON(data interface{}, filepath string) error {
 	// Writing channelDataInfo map in a state file
 	dataJSON, _ := json.MarshalIndent(data, "", "  ")
-	err := ioutil.WriteFile(filepath, dataJSON, 0644)
+	err := os.WriteFile(filepath, dataJSON, 0644)
 	if err != nil {
-		return fmt.Errorf("Error writing %s: %s\n", filepath, err.Error())
+		return fmt.Errorf("error writing %s: %s", filepath, err.Error())
 	}
 	return nil
 }
 
 func main() {
+	DefaultConfigFilepath := "config.json"
+	DefaultNbWorker := 1
+	DefaultMinimalGaps := 1.5
 	var err error
 	var config *Config
 	// Command line management
-	configFilepath := flag.String("c", "config.json", "MSeed input file")
-	nbWorkers := flag.Int("w", 1, "Set number of workers used to scan SDS")
-	//debugFlag := flag.Bool("d", false, "Set debug flag")
-	verboseFlag := flag.Bool("v", false, "Set verbose flag")
-	flag.Parse()
+	parser := argo.New("SDS Gaaaaaps statistics generator")
+	configFilepath, _ := parser.StringArg("c", "config", "Configuration file", &DefaultConfigFilepath, false)
+	nbWorkers, _ := parser.IntArg("w", "worker", "Set number of workers used to scan SDS", &DefaultNbWorker, false)
+	minimalGaps, _ := parser.FloatArg("g", "gap", "Set minimal gaps express in inter-sample duration", &DefaultMinimalGaps, false)
+	computeDist, _ := parser.FlagArg("d", "distribution", "Enable samples distribution computation")
+	verboseFlag, _ := parser.FlagArg("v", "verbose", "Set verbose flag")
+	usageFlag := parser.UsageFlag()
+
+	err = parser.Parse(os.Args)
+	if err != nil {
+		fmt.Printf("Error during command line parsing: %s", err.Error())
+		os.Exit(1)
+	}
+
+	if *usageFlag {
+		fmt.Printf("%s", parser.Usage())
+		os.Exit(0)
+	}
 
 	config, err = LoadConfig(*configFilepath, *verboseFlag)
 	if err != nil {
@@ -137,7 +151,7 @@ func main() {
 		fmt.Printf("Can't initialize SDS manager: %s", err.Error())
 		os.Exit(1)
 	}
-	sdsScanner := scanner.NewSDSScanner(*sdsManager, *nbWorkers)
+	sdsScanner := scanner.NewSDSScanner(*sdsManager, *nbWorkers, *minimalGaps, *computeDist, *verboseFlag)
 	var processedYear []int
 	for _, current := range config.AvailableYear {
 		intYear, err := strconv.Atoi(current)
@@ -150,10 +164,10 @@ func main() {
 	for _, currentYear := range processedYear {
 		lastComputationTime, globalSds, erri := initData(config.DataDir, currentYear)
 		if erri != nil {
-			fmt.Printf("Error initializing directory structure for yesr %d: %s\n", currentYear, erri.Error())
+			fmt.Printf("Error initializing directory structure for year %d: %s\n", currentYear, erri.Error())
 			continue
 		}
-		result, err := sdsScanner.ScanOneYear(currentYear, config.StreamSelection)
+		result, err := sdsScanner.ScanOneYear(currentYear, config.StreamSelection, lastComputationTime)
 		if err != nil {
 			fmt.Printf("Error during scan of year %d\n", currentYear)
 		}

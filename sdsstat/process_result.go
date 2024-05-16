@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"oca/sds/scanner"
 	"path"
 	"strings"
+
+	"kleos.unice.fr/peix/gsds/oca/sds/scanner"
 )
 
 type consolidatedStatistics struct {
@@ -41,9 +42,7 @@ func (rp *ResultProcessor) dumpToDisk() {
 	}
 }
 
-//
 // NewResultProcessor initialize a new resultProcessor
-//
 func NewResultProcessor(yearDir string, lastProcess map[string]float64,
 	globalSds map[string]map[string]consolidatedStatistics) ResultProcessor {
 	return ResultProcessor{yearDir: yearDir, lastProcess: lastProcess,
@@ -56,11 +55,11 @@ func (rp *ResultProcessor) saveFileStatistic(result scanner.ScanResult) {
 	entry := strings.Join(splitFilename[0:4], ".")
 	if _, ok := rp.fileStatistics[entry]; !ok {
 		filePath := path.Join(rp.yearDir, entry+".json")
-		var content map[string]*scanner.DayFileStatistics
+		content := make(map[string]*scanner.DayFileStatistics)
 		loadJSON(filePath, content)
 		rp.fileStatistics[entry] = content
 	}
-	rp.fileStatistics[entry][strings.Join(splitFilename[5:6], ".")] = result.Statistics
+	rp.fileStatistics[entry][strings.Join(splitFilename[6:7], ".")] = result.Statistics
 }
 
 func (rp *ResultProcessor) updateGlobalStatistic(result scanner.ScanResult) {
@@ -70,6 +69,9 @@ func (rp *ResultProcessor) updateGlobalStatistic(result scanner.ScanResult) {
 	globalStat := consolidatedStatistics{TotalGap: int(result.Statistics.Gap.Duration() / 1e9),
 		NbGap:   result.Statistics.Gap.Len(),
 		Percent: float64(result.Statistics.Gap.Duration()) / 86400}
+	if _, ok := rp.globalSds[streamEntry]; !ok {
+		rp.globalSds[streamEntry] = make(map[string]consolidatedStatistics)
+	}
 	rp.globalSds[streamEntry][dayEntry] = globalStat
 }
 
