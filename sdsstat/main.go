@@ -16,11 +16,6 @@ import (
 // streamId -> <Y.JD> -> consolidated Statistics
 type ConsolidationFile map[string]map[string]consolidatedStatistics
 
-// Associate each filename with last process time
-//lastProcess map[string]float64
-// streamId -> <Y.JD> -> statistics
-//streamStats map[string]map[string]DayFileStatistics
-
 func isDirectory(path string) (e error) {
 	var s os.FileInfo
 	if s, e = os.Stat(path); os.IsNotExist(e) {
@@ -33,6 +28,7 @@ func isDirectory(path string) (e error) {
 	return
 }
 
+// initData retreive or initialize year directory data
 func initData(dataDir string, year int) (lastProcess map[string]float64,
 	globalSds map[string]map[string]consolidatedStatistics, err error) {
 	var e error
@@ -154,7 +150,7 @@ func main() {
 	if *verboseFlag {
 		fmt.Printf("Creating SDS scanner\n")
 	}
-	sdsScanner := scanner.NewSDSScanner(*sdsManager, *nbWorkers, *minimalGap,
+	sdsScanner := scanner.NewSDSScanner(*sdsManager, *nbWorkers, *minimalGaps, *computeDist,
 		*verboseFlag)
 	var processedYear []int
 	for _, current := range config.AvailableYear {
