@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	kleos.unice.fr/peix/argo v0.1.2
-	kleos.unice.fr/peix/gsds v0.0.5
+	kleos.unice.fr/peix/gsds v0.0.6
 )
 
 require (
