@@ -2,21 +2,19 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
-	"io/ioutil"
-	"oca/sds"
-	"oca/sds/scanner"
 	"os"
 	"path"
-	"runtime/pprof"
 	"strconv"
+
+	"kleos.unice.fr/peix/argo/oca/argo"
+	"kleos.unice.fr/peix/gsds/oca/sds"
+	"kleos.unice.fr/peix/gsds/oca/sds/scanner"
 )
 
-// Associate each filename with last process time
-//lastProcess map[string]float64
-// streamId -> <Y.JD> -> statistics
-//streamStats map[string]map[string]DayFileStatistics
+// ConsolidationFile define structure of sds_global.json
+// streamId -> <Y.JD> -> consolidated Statistics
+type ConsolidationFile map[string]map[string]consolidatedStatistics
 
 func isDirectory(path string) (e error) {
 	var s os.FileInfo
@@ -30,6 +28,7 @@ func isDirectory(path string) (e error) {
 	return
 }
 
+// initData retreive or initialize year directory data
 func initData(dataDir string, year int) (lastProcess map[string]float64,
 	globalSds map[string]map[string]consolidatedStatistics, err error) {
 	var e error
@@ -94,36 +93,38 @@ func loadJSON(filepath string, result interface{}) error {
 
 func dumpJSON(data interface{}, filepath string) error {
 	// Writing channelDataInfo map in a state file
-	dataJSON, _ := json.Marshal(data)
-	err := ioutil.WriteFile(filepath, dataJSON, 0644)
+	dataJSON, _ := json.MarshalIndent(data, "", "  ")
+	err := os.WriteFile(filepath, dataJSON, 0644)
 	if err != nil {
-		return fmt.Errorf("Error writing %s: %s", filepath, err.Error())
+		return fmt.Errorf("error writing %s: %s", filepath, err.Error())
 	}
 	return nil
 }
 
 func main() {
+	DefaultConfigFilepath := "config.json"
+	DefaultNbWorker := 1
+	DefaultMinimalGaps := 1.5
 	var err error
 	var config *Config
 	// Command line management
-	configFilepath := flag.String("c", "config.json", "MSeed input file")
-	nbWorkers := flag.Int("w", 1, "Set number of workers used to scan SDS")
-	//debugFlag := flag.Bool("d", false, "Set debug flag")
-	minimalGap := flag.Float64("g", 3.0/2, "Set the minimal gap size if term of inter sample duration")
-	cpuprofile := flag.String("cpuprofile", "", "write cpu profile to `file`")
-	verboseFlag := flag.Bool("v", false, "Set verbose flag")
-	flag.Parse()
+	parser := argo.New("SDS Gaaaaaps statistics generator")
+	configFilepath, _ := parser.StringArg("c", "config", "Configuration file", &DefaultConfigFilepath, false)
+	nbWorkers, _ := parser.IntArg("w", "worker", "Set number of workers used to scan SDS", &DefaultNbWorker, false)
+	minimalGaps, _ := parser.FloatArg("g", "gap", "Set minimal gaps express in inter-sample duration", &DefaultMinimalGaps, false)
+	computeDist, _ := parser.FlagArg("d", "distribution", "Enable samples distribution computation")
+	verboseFlag, _ := parser.FlagArg("v", "verbose", "Set verbose flag")
+	usageFlag := parser.UsageFlag()
 
-	if *cpuprofile != "" {
-		f, perr := os.Create(*cpuprofile)
-		if perr != nil {
-			fmt.Printf("could not create CPU profile: %s\n", err.Error())
-		}
-		defer f.Close()
-		if perr = pprof.StartCPUProfile(f); perr != nil {
-			fmt.Printf("could not start CPU profile: %s\n", err.Error())
-		}
-		defer pprof.StopCPUProfile()
+	err = parser.Parse(os.Args)
+	if err != nil {
+		fmt.Printf("Error during command line parsing: %s", err.Error())
+		os.Exit(1)
+	}
+
+	if *usageFlag {
+		fmt.Printf("%s", parser.Usage())
+		os.Exit(0)
 	}
 
 	config, err = LoadConfig(*configFilepath, *verboseFlag)
@@ -149,7 +150,7 @@ func main() {
 	if *verboseFlag {
 		fmt.Printf("Creating SDS scanner\n")
 	}
-	sdsScanner := scanner.NewSDSScanner(*sdsManager, *nbWorkers, *minimalGap,
+	sdsScanner := scanner.NewSDSScanner(*sdsManager, *nbWorkers, *minimalGaps, *computeDist,
 		*verboseFlag)
 	var processedYear []int
 	for _, current := range config.AvailableYear {
@@ -166,7 +167,7 @@ func main() {
 		}
 		lastComputationTime, globalSds, erri := initData(config.DataDir, currentYear)
 		if erri != nil {
-			fmt.Printf("Error initializing directory structure for yesr %d: %s\n", currentYear, erri.Error())
+			fmt.Printf("Error initializing directory structure for year %d: %s\n", currentYear, erri.Error())
 			continue
 		}
 		// Copy lastComputationTime for scanner

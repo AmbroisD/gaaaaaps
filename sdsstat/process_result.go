@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
-	"oca/sds/scanner"
 	"path"
+	"strconv"
 	"strings"
+	"time"
+
+	"kleos.unice.fr/peix/gsds/oca/sds/scanner"
 )
 
 type consolidatedStatistics struct {
@@ -14,9 +17,23 @@ type consolidatedStatistics struct {
 	Overlap  int     `json:"overlap"`
 }
 
-//
+func yesterday(julian_day string) string {
+	splitDay := strings.Split(julian_day, ".")
+	year, _ := strconv.Atoi(splitDay[0])
+	day, _ := strconv.Atoi(splitDay[1])
+	yesterdayTime := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC).Add(time.Duration(day-2) * time.Hour * 24)
+	return fmt.Sprintf("%d.%d", yesterdayTime.Year(), yesterdayTime.YearDay())
+}
+
+func tomorrow(julian_day string) string {
+	splitDay := strings.Split(julian_day, ".")
+	year, _ := strconv.Atoi(splitDay[0])
+	day, _ := strconv.Atoi(splitDay[1])
+	yesterdayTime := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC).Add(time.Duration(day) * time.Hour * 24)
+	return fmt.Sprintf("%d.%d", yesterdayTime.Year(), yesterdayTime.YearDay())
+}
+
 // ResultProcessor is used to save and consolidate result given by SDSScanner
-//
 type ResultProcessor struct {
 	// The data year directory
 	yearDir string
@@ -30,15 +47,14 @@ type ResultProcessor struct {
 	fileStatistics map[string]map[string]*scanner.DayFileStatistics
 }
 
-//
 // dumpToDisk dump all processed result to disk
-//
 func (rp *ResultProcessor) dumpToDisk() {
 	lastProcessFilepath := path.Join(rp.yearDir, "global_json", "dict_m_date.json")
 	err := dumpJSON(rp.lastProcess, lastProcessFilepath)
 	if err != nil {
 		fmt.Printf("Error during dumping of %s\n", lastProcessFilepath)
 	}
+	rp.fixStatistics()
 	globalSdsFilepath := path.Join(rp.yearDir, "global_json", "sds_global.json")
 	err = dumpJSON(rp.globalSds, globalSdsFilepath)
 	if err != nil {
@@ -53,13 +69,11 @@ func (rp *ResultProcessor) dumpToDisk() {
 	}
 }
 
-//
 // NewResultProcessor initialize a new resultProcessor
 //
 // yearDir     -- The year data directoty
 // lastProcess -- The last processing time informations
 // globalSds   -- The consolidated informations mapping
-//
 func NewResultProcessor(yearDir string, lastProcess map[string]float64,
 	globalSds map[string]map[string]consolidatedStatistics) ResultProcessor {
 	return ResultProcessor{yearDir: yearDir, lastProcess: lastProcess,
@@ -67,11 +81,9 @@ func NewResultProcessor(yearDir string, lastProcess map[string]float64,
 		fileStatistics: make(map[string]map[string]*scanner.DayFileStatistics)}
 }
 
-//
 // saveFullStatistics save full statistics for a given ScanResult
 //
 // result -- The result to save
-//
 func (rp *ResultProcessor) saveFullStatistics(result scanner.ScanResult) {
 	splitFilename := strings.Split(result.Filename, ".")
 	entry := strings.Join(splitFilename[0:4], ".")
@@ -87,44 +99,47 @@ func (rp *ResultProcessor) saveFullStatistics(result scanner.ScanResult) {
 	rp.fileStatistics[entry][strings.Join(splitFilename[5:7], ".")] = result.Statistics
 }
 
-//
-// updateConsolidatedStatistics update consolidated statistics according to given
-// ScanResult
-//
-// result -- The result to consolidate
-//
-func (rp *ResultProcessor) updateConsolidatedStatistics(result scanner.ScanResult) {
-	splitFilename := strings.Split(result.Filename, ".")
-	streamEntry := strings.Join(splitFilename[0:4], ".")
-	dayEntry := strings.Join(splitFilename[5:7], ".")
-	globalStat := consolidatedStatistics{TotalGap: int(result.Statistics.Gap.Duration() / 1e9),
-		NbGap:   result.Statistics.Gap.Len(),
-		Percent: 100 * (86400 - float64(result.Statistics.Gap.Duration()/1e9)) / 86400}
-	if _, ok := rp.globalSds[streamEntry]; !ok {
-		rp.globalSds[streamEntry] = make(map[string]consolidatedStatistics)
-	}
-	rp.globalSds[streamEntry][dayEntry] = globalStat
-}
-
-//
-// processResult process result read from given channel until
-// this channel is closed
-//
-// When the channel is closed all processed result are stored on dick
-// before returning
-//
-func (rp *ResultProcessor) processResult(result chan scanner.ScanResult) {
-	for {
-		select {
-		case currentScanResult, ok := <-result:
-			if !ok {
-				// Save result
-				rp.dumpToDisk()
-				return
+// fixStatistics Update Gaps according to data present in previous and next day.
+// This method also recomopute consolidated statistics
+func (rp *ResultProcessor) fixStatistics() {
+	for streamID, statMap := range rp.fileStatistics {
+		for day, dayStat := range statMap {
+			// Update gap with yesterday data
+			yesterday := yesterday(day)
+			if yesterdayStat, ok := statMap[yesterday]; ok {
+				for _, current := range yesterdayStat.Tomorrow.PeriodList {
+					dayStat.Gap, _ = dayStat.Gap.Sub(current)
+				}
+				// Update gap with tomorrow data
+				tomorrow := tomorrow(day)
+				if tomorrowStat, ok := statMap[tomorrow]; ok {
+					for _, current := range tomorrowStat.Yesterday.PeriodList {
+						dayStat.Gap, _ = dayStat.Gap.Sub(current)
+					}
+				}
 			}
-			rp.lastProcess[currentScanResult.Filename] = float64(currentScanResult.Statistics.GeneratedTime.UnixNano()) / 1e9
-			rp.saveFullStatistics(currentScanResult)
-			rp.updateConsolidatedStatistics(currentScanResult)
+			rp.setConsolidatedStatistics(streamID, day, dayStat)
 		}
 	}
+}
+
+// setConsolidatedStatistics set consolidated statistics of a given stream day statistics
+func (rp *ResultProcessor) setConsolidatedStatistics(streamID, day string, dayStat *scanner.DayFileStatistics) {
+	globalStat := consolidatedStatistics{TotalGap: int(dayStat.Gap.Duration() / 1e9),
+		NbGap:   dayStat.Gap.Len(),
+		Percent: 100 * (86400 - float64(dayStat.Gap.Duration()/1e9)) / 86400}
+	if _, ok := rp.globalSds[streamID]; !ok {
+		rp.globalSds[streamID] = make(map[string]consolidatedStatistics)
+	}
+	rp.globalSds[streamID][day] = globalStat
+
+}
+
+// processResult update full day statistics read from given channel
+func (rp *ResultProcessor) processResult(result chan scanner.ScanResult) {
+	for currentScanResult := range result {
+		rp.lastProcess[currentScanResult.Filename] = float64(currentScanResult.Statistics.GeneratedTime.UnixNano()) / 1e9
+		rp.saveFullStatistics(currentScanResult)
+	}
+	rp.dumpToDisk()
 }
