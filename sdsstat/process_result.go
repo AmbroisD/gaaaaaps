@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
 	"path"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"kleos.unice.fr/peix/gsds/oca/sds/scanner"
@@ -35,8 +38,6 @@ func tomorrow(julian_day string) string {
 
 // ResultProcessor is used to save and consolidate result given by SDSScanner
 type ResultProcessor struct {
-	// The data year directory
-	yearDir string
 	// The mapping between filename and last processing time
 	lastProcess map[string]float64
 	// The consolidated processing informations
@@ -45,6 +46,8 @@ type ResultProcessor struct {
 	// The full processing informations
 	// streamID -> "<year>.<jday>" -> statistics
 	fileStatistics map[string]map[string]*scanner.DayFileStatistics
+	// The data year directory
+	yearDir string
 }
 
 // dumpToDisk dump all processed result to disk
@@ -136,10 +139,24 @@ func (rp *ResultProcessor) setConsolidatedStatistics(streamID, day string, daySt
 }
 
 // processResult update full day statistics read from given channel
-func (rp *ResultProcessor) processResult(result chan scanner.ScanResult) {
-	for currentScanResult := range result {
-		rp.lastProcess[currentScanResult.Filename] = float64(currentScanResult.Statistics.GeneratedTime.UnixNano()) / 1e9
-		rp.saveFullStatistics(currentScanResult)
+func (rp *ResultProcessor) processResult(result chan scanner.ScanResult) (mustStop bool) {
+	signalChannel := make(chan os.Signal, 2)
+	defer close(signalChannel)
+	signal.Notify(signalChannel, syscall.SIGINT)
+Loop:
+	for {
+		select {
+		case currentScanResult, ok := <-result:
+			if !ok {
+				break Loop
+			}
+			rp.lastProcess[currentScanResult.Filename] = float64(currentScanResult.Statistics.GeneratedTime.UnixNano()) / 1e9
+			rp.saveFullStatistics(currentScanResult)
+		case <-signalChannel:
+			mustStop = true
+			break Loop
+		}
 	}
 	rp.dumpToDisk()
+	return
 }

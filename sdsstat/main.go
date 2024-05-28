@@ -181,6 +181,8 @@ func main() {
 		}
 		yearDir := path.Join(config.DataDir, fmt.Sprintf("%d", currentYear))
 		resultProcessor := NewResultProcessor(yearDir, lastComputationTime, globalSds)
-		resultProcessor.processResult(result)
+		if resultProcessor.processResult(result) {
+			break
+		}
 	}
 }
